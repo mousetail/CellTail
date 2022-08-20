@@ -13,6 +13,8 @@ fn main() {
 
     let tokens = tokenizer::tokenize(contents.chars().collect());
     let lexical_tokens = lexer::lex(tokens);
+
+    println!("{:#?}", lexical_tokens);
     let structure = parser::parse(lexical_tokens);
 
     // let mut buff: Vec<u8> = vec![];
@@ -20,7 +22,6 @@ fn main() {
     //     .read_to_end(&mut buff)
     //     .expect("Failed to read input file");
 
-    // println!("{:#?}", structure);
     interpreter::interpret(
         structure,
         env::args()

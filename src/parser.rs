@@ -1,5 +1,5 @@
 use crate::lexer::{LexerToken, TokenGroup};
-use crate::runtime::expression::{BinaryOperator, Expression};
+use crate::runtime::expression::{BinaryOperator, Expression, UnaryOperator};
 use crate::runtime::literal::Literal;
 use crate::runtime::pattern::Pattern;
 use crate::tokenizer::{Token, TokenKind};
@@ -30,6 +30,11 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
                 value,
                 ..
             }) => Expression::Variable(value.clone()),
+            LexerToken::BasicToken(Token {
+                kind: TokenKind::String,
+                value,
+                ..
+            }) => Expression::Literal(Literal::new_string_literal(value.clone().as_bytes())),
             t => panic!("Unexpected token in match expression: {:?}", t),
         };
     }
@@ -42,6 +47,26 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
                 .map(parse_as_expression)
                 .collect(),
         );
+    }
+
+    for operator in [('-', UnaryOperator::Neg), ('!', UnaryOperator::Not)] {
+        if let Some(LexerToken::BasicToken(Token {
+            kind: TokenKind::Operator(op),
+            ..
+        })) = input.contents.first()
+        {
+            if *op == operator.0 {
+                return Expression::UnaryOperator(
+                    operator.1,
+                    Box::new(parse_as_expression(TokenGroup {
+                        delimiter: None,
+                        contents: input.contents[1..].to_vec(),
+                        start: input.start,
+                        end: input.end,
+                    })),
+                );
+            }
+        }
     }
 
     for operator in [
@@ -59,7 +84,7 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
         }
     }
 
-    todo!();
+    panic!("Unexpected token: {:?}", input);
 }
 
 fn parse_as_pattern(input: TokenGroup) -> Pattern {
@@ -87,6 +112,11 @@ fn parse_as_pattern(input: TokenGroup) -> Pattern {
                 value,
                 ..
             }) => Pattern::Identifier(value.clone()),
+            LexerToken::BasicToken(Token {
+                kind: TokenKind::String,
+                value,
+                ..
+            }) => Pattern::Literal(Literal::new_string_literal(value.clone().as_bytes())),
             t => panic!("Unexpected token in match expression: {:?}", t),
         };
     }

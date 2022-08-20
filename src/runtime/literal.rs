@@ -7,6 +7,19 @@ pub enum Literal {
     Null,
 }
 
+impl Literal {
+    pub fn new_string_literal(item: &[u8]) -> Literal {
+        if item.len() == 0 {
+            return Literal::Null;
+        } else {
+            return Literal::Tuple(vec![
+                Literal::Number(item[0] as isize),
+                Literal::new_string_literal(&item[1..]),
+            ]);
+        }
+    }
+}
+
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Write strictly the first element into the supplied output
