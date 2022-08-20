@@ -1,0 +1,115 @@
+use std::io::*;
+
+use crate::parser;
+use crate::runtime::literal::Literal;
+
+#[derive(Clone, PartialEq, Debug)]
+struct Cell {
+    value_from_left: Literal,
+    value_from_top: Literal,
+    value_from_right: Literal,
+}
+
+impl Cell {
+    fn new() -> Cell {
+        Cell {
+            value_from_left: Literal::Null,
+            value_from_top: Literal::Null,
+            value_from_right: Literal::Null,
+        }
+    }
+}
+
+fn parse_literal(lit: Literal) -> (Literal, Literal, Literal) {
+    match lit {
+        Literal::Tuple(t) => {
+            assert_eq!(t.len(), 3);
+            (t[0].clone(), t[1].clone(), t[2].clone())
+        }
+        b => (Literal::Null, b, Literal::Null),
+    }
+}
+
+pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
+    let mut cells: Vec<Cell> = input
+        .iter()
+        .map(|i| Cell {
+            value_from_left: Literal::Null,
+            value_from_top: Literal::Number(*i as isize),
+            value_from_right: Literal::Null,
+        })
+        .collect();
+
+    let mut modified = true;
+    while modified {
+        modified = false;
+        let mut next_value = cells.clone();
+        let mut cell_offset = 0;
+        for (index, cell) in cells.iter().enumerate() {
+            if cell.value_from_left != Literal::Null
+                || cell.value_from_top != Literal::Null
+                || cell.value_from_right != Literal::Null
+            {
+                for statement in &statements {
+                    if let parser::Statement::Rule(pattern, expression) = statement {
+                        if let Some(vars) = pattern.matches(Literal::Tuple(vec![
+                            cell.value_from_left.clone(),
+                            cell.value_from_top.clone(),
+                            cell.value_from_right.clone(),
+                        ])) {
+                            let result = parse_literal(expression.evaluate(&vars));
+                            if index == 0 && result.0 != Literal::Null {
+                                next_value.insert(0, Cell::new());
+                                cell_offset += 1;
+                                modified = true;
+                            }
+
+                            if index + cell_offset >= next_value.len() - 1 {
+                                next_value.push(Cell::new());
+                                modified = true;
+                            }
+
+                            if if (index + cell_offset == 0) {
+                                &Literal::Null
+                            } else {
+                                &next_value[index + cell_offset - 1].value_from_right
+                            } != &result.0
+                                || next_value[index + cell_offset].value_from_top != result.1
+                                || if (index + cell_offset >= next_value.len() - 1) {
+                                    &Literal::Null
+                                } else {
+                                    &next_value[index + cell_offset + 1].value_from_right
+                                } != &result.2
+                            {
+                                modified = true;
+                            }
+
+                            if (index + cell_offset > 0) {
+                                next_value[index + cell_offset - 1].value_from_right = result.0;
+                            }
+                            next_value[index + cell_offset].value_from_top = result.1;
+                            if (index + cell_offset < next_value.len() - 1) {
+                                next_value[index + cell_offset].value_from_left = result.2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        cells = next_value;
+
+        for cell in &cells {
+            print!(
+                "{:?}",
+                (
+                    cell.value_from_left.clone(),
+                    cell.value_from_top.clone(),
+                    cell.value_from_right.clone()
+                )
+            );
+        }
+    }
+
+    println!("{:?}", cells);
+}
