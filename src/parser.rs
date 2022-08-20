@@ -138,6 +138,40 @@ pub fn parse(input: TokenGroup) -> Vec<Statement> {
     for statement in input.contents {
         if let LexerToken::Group(group) = statement {
             if let Some((pattern, _operator, expression)) = group.split_first(TokenKind::Colon) {
+                if let LexerToken::BasicToken(
+                    t @ Token {
+                        kind: TokenKind::Identifier,
+                        ..
+                    },
+                ) = &pattern.contents[0]
+                {
+                    if t.value == "fn" {
+                        let function_name = if let LexerToken::BasicToken(
+                            t @ Token {
+                                kind: TokenKind::Identifier,
+                                ..
+                            },
+                        ) = &pattern.contents[1]
+                        {
+                            t.value.clone()
+                        } else {
+                            panic!("Invalid function name on position {} {}", t.start, t.end)
+                        };
+                        out.push(Statement::Function(
+                            function_name,
+                            parse_as_pattern(TokenGroup {
+                                delimiter: None,
+                                contents: pattern.contents[1..].to_vec(),
+                                start: Some(t.end),
+                                end: group.end,
+                            }),
+                            parse_as_expression(expression),
+                        ));
+
+                        continue;
+                    }
+                }
+
                 out.push(Statement::Rule(
                     parse_as_pattern(pattern),
                     parse_as_expression(expression),

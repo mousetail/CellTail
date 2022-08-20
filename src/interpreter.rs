@@ -75,7 +75,7 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
                                 &next_value[index + cell_offset - 1].value_from_right
                             } != &result.0
                                 || next_value[index + cell_offset].value_from_top != result.1
-                                || if (index + cell_offset >= next_value.len() - 1) {
+                                || if index + cell_offset >= next_value.len() - 1 {
                                     &Literal::Null
                                 } else {
                                     &next_value[index + cell_offset + 1].value_from_right
@@ -88,9 +88,11 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
                                 next_value[index + cell_offset - 1].value_from_right = result.0;
                             }
                             next_value[index + cell_offset].value_from_top = result.1;
-                            if (index + cell_offset < next_value.len() - 1) {
+                            if index + cell_offset < next_value.len() - 1 {
                                 next_value[index + cell_offset + 1].value_from_left = result.2;
                             }
+
+                            break;
                         }
                     }
                 }
@@ -99,13 +101,13 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
 
         cells = next_value;
 
-        // for cell in &cells {
-        //     print!(
-        //         "(L={} M={} R={})\t",
-        //         cell.value_from_left, cell.value_from_top, cell.value_from_right
-        //     );
-        // }
-        // println!();
+        for cell in &cells {
+            print!(
+                "(L={} M={} R={})\t",
+                cell.value_from_left, cell.value_from_top, cell.value_from_right
+            );
+        }
+        println!();
 
         std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
     }
