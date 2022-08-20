@@ -13,20 +13,16 @@ pub enum TokenKind {
 
 #[derive(Debug)]
 pub struct Token {
-    kind: TokenKind,
-    start: usize,
-    value: String,
-    end: usize,
+    pub kind: TokenKind,
+    pub start: usize,
+    pub end: usize,
+    pub value: String,
 }
 
 fn match_rest<T>(input: &Vec<char>, counter: &mut usize, match_fn: T, kind: TokenKind) -> Token
 where
     T: Fn(char) -> bool,
 {
-    println!(
-        "Parsing {kind:?} starting at {counter:?} first char: {:?}",
-        input[*counter]
-    );
     let start = *counter;
     while *counter < input.len() && match_fn(input[*counter]) {
         *counter += 1;
