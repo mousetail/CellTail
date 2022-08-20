@@ -84,12 +84,12 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
                                 modified = true;
                             }
 
-                            if (index + cell_offset > 0) {
+                            if index + cell_offset > 0 {
                                 next_value[index + cell_offset - 1].value_from_right = result.0;
                             }
                             next_value[index + cell_offset].value_from_top = result.1;
                             if (index + cell_offset < next_value.len() - 1) {
-                                next_value[index + cell_offset].value_from_left = result.2;
+                                next_value[index + cell_offset + 1].value_from_left = result.2;
                             }
                         }
                     }
@@ -99,17 +99,31 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
 
         cells = next_value;
 
-        for cell in &cells {
-            print!(
-                "{:?}",
-                (
-                    cell.value_from_left.clone(),
-                    cell.value_from_top.clone(),
-                    cell.value_from_right.clone()
-                )
-            );
-        }
+        // for cell in &cells {
+        //     print!(
+        //         "(L={} M={} R={})\t",
+        //         cell.value_from_left, cell.value_from_top, cell.value_from_right
+        //     );
+        // }
+        // println!();
+
+        std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
     }
 
-    println!("{:?}", cells);
+    println!(
+        "{}",
+        cells
+            .iter()
+            .filter(|i| if let Literal::Null = i.value_from_top {
+                false
+            } else {
+                true
+            })
+            .map(|i| if let Literal::Number(k) = i.value_from_top {
+                k.try_into().ok().unwrap_or(80u8) as char
+            } else {
+                '?'
+            })
+            .collect::<String>()
+    );
 }

@@ -106,6 +106,10 @@ pub fn lex(input: Vec<Token>) -> TokenGroup {
                 ..
             } => (),
             Token {
+                kind: TokenKind::String,
+                ..
+            } => {}
+            Token {
                 kind: TokenKind::ClosingBracket(character),
                 ..
             } => {

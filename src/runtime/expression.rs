@@ -35,7 +35,11 @@ impl Expression {
             Expression::Literal(v) => v.clone(),
             Expression::Tuple(v) => Literal::Tuple(v.iter().map(|i| i.evaluate(vars)).collect()),
             Expression::Variable(name) => {
-                vars.get(name).expect("Undefined variable {name}").clone()
+                if name == "N" {
+                    Literal::Null
+                } else {
+                    vars.get(name).expect("Undefined variable {name}").clone()
+                }
             }
             _ => todo!("Other expression types not implemented yet"),
         }
