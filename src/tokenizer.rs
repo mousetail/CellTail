@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Identifier,
     String,
@@ -8,10 +8,11 @@ pub enum TokenKind {
     ClosingBracket(char),
     Comma,
     Colon,
+    Semicolon,
     Comment,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
@@ -97,18 +98,33 @@ pub fn tokenize(input: Vec<char>) -> Vec<Token> {
                 |c: char| c == x || c == '@',
                 TokenKind::Operator(x),
             )),
-            ':' => result.push(Token {
-                kind: TokenKind::Colon,
-                start: counter,
-                end: counter + 1,
-                value: [input[counter]].iter().collect(),
-            }),
-            ',' => result.push(Token {
-                kind: TokenKind::Comma,
-                start: counter,
-                end: counter + 1,
-                value: [input[counter]].iter().collect(),
-            }),
+            ':' => {
+                result.push(Token {
+                    kind: TokenKind::Colon,
+                    start: counter,
+                    end: counter + 1,
+                    value: [input[counter]].iter().collect(),
+                });
+                counter += 1
+            }
+            ',' => {
+                result.push(Token {
+                    kind: TokenKind::Comma,
+                    start: counter,
+                    end: counter + 1,
+                    value: [input[counter]].iter().collect(),
+                });
+                counter += 1
+            }
+            ';' => {
+                result.push(Token {
+                    kind: TokenKind::Semicolon,
+                    start: counter,
+                    end: counter + 1,
+                    value: [input[counter]].iter().collect(),
+                });
+                counter += 1
+            }
             _ => {
                 todo!()
             }

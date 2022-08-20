@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 
 mod lexer;
+mod parser;
 mod tokenizer;
 
 fn main() {
@@ -10,6 +11,7 @@ fn main() {
 
     let tokens = tokenizer::tokenize(contents.chars().collect());
     let lexical_tokens = lexer::lex(tokens);
+    let structure = parser::parse(lexical_tokens);
 
-    println!("{:#?}", lexical_tokens)
+    println!("{:#?}", structure)
 }
