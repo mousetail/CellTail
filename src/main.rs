@@ -1,8 +1,10 @@
 use std::env;
 use std::fs;
 
+mod interpreter;
 mod lexer;
 mod parser;
+mod runtime;
 mod tokenizer;
 
 fn main() {
@@ -13,5 +15,18 @@ fn main() {
     let lexical_tokens = lexer::lex(tokens);
     let structure = parser::parse(lexical_tokens);
 
-    println!("{:#?}", structure)
+    // let mut buff: Vec<u8> = vec![];
+    // stdin()
+    //     .read_to_end(&mut buff)
+    //     .expect("Failed to read input file");
+
+    // println!("{:#?}", structure);
+    interpreter::interpret(
+        structure,
+        env::args()
+            .nth(2)
+            .expect("Need 2 arguments")
+            .bytes()
+            .collect(),
+    )
 }
