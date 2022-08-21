@@ -1,5 +1,6 @@
 use crate::errors;
 use crate::lexer::{LexerToken, TokenGroup};
+use crate::runtime::attributes;
 use crate::runtime::expression::{BinaryOperator, Expression, UnaryOperator};
 use crate::runtime::literal::Literal;
 use crate::runtime::pattern::Pattern;
@@ -10,7 +11,7 @@ use std::collections::HashMap;
 pub struct Program {
     pub functions: HashMap<String, PatternList>,
     pub rules: PatternList,
-    pub attributes: HashMap<String, Literal>,
+    pub attributes: attributes::Attributes,
 }
 
 impl Program {
@@ -18,7 +19,7 @@ impl Program {
         Program {
             functions: HashMap::new(),
             rules: PatternList(Vec::new()),
-            attributes: HashMap::new(),
+            attributes: attributes::Attributes::new(),
         }
     }
 
@@ -33,10 +34,6 @@ impl Program {
 
     fn add_rule(&mut self, rule: (Pattern, Expression)) {
         self.rules.0.push(rule);
-    }
-
-    fn add_attribute(&mut self, name: String, value: Literal) {
-        self.attributes.insert(name, value);
     }
 }
 
