@@ -108,6 +108,10 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
         ('-', BinaryOperator::Subtract),
         ('*', BinaryOperator::Multiply),
         ('/', BinaryOperator::Divide),
+        ('&', BinaryOperator::And),
+        ('|', BinaryOperator::Or),
+        ('^', BinaryOperator::Xor),
+        ('%', BinaryOperator::Mod),
     ] {
         if let Some((part1, _op, part2)) = input.split_first(TokenKind::Operator(operator.0)) {
             return Ok(Expression::BinaryOperator(
