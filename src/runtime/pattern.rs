@@ -1,3 +1,4 @@
+use crate::runtime::expression::Expression;
 use crate::runtime::literal::Literal;
 use std::collections::HashMap;
 
@@ -5,8 +6,9 @@ use std::collections::HashMap;
 pub enum Pattern {
     Literal(Literal),
     Identifier(String),
-    // Any,
+    Any,
     Tuple(Vec<Pattern>),
+    Expression(Expression),
 }
 
 impl Pattern {
@@ -53,6 +55,15 @@ impl Pattern {
                     None
                 }
             }
+            Pattern::Expression(expr) => {
+                let new_value = expr.evaluate(&HashMap::new(), &HashMap::new());
+                if &new_value == value {
+                    Some(HashMap::new())
+                } else {
+                    None
+                }
+            }
+            Pattern::Any => Some(HashMap::new()),
         }
     }
 }

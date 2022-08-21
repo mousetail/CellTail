@@ -49,15 +49,14 @@ pub fn interpret(program: parser::Program, input: Vec<u8>) -> errors::CellTailRe
                 || cell.value_from_top != Literal::Null
                 || cell.value_from_right != Literal::Null
             {
-                if let Some(raw_result) =
-                    program
-                        .rules
-                        .apply_first_matching_pattern(Literal::Tuple(vec![
-                            cell.value_from_left.clone(),
-                            cell.value_from_top.clone(),
-                            cell.value_from_right.clone(),
-                        ]))
-                {
+                if let Some(raw_result) = program.rules.apply_first_matching_pattern(
+                    Literal::Tuple(vec![
+                        cell.value_from_left.clone(),
+                        cell.value_from_top.clone(),
+                        cell.value_from_right.clone(),
+                    ]),
+                    &program.functions,
+                ) {
                     let result = parse_literal(raw_result);
 
                     if index == 0 && result.0 != Literal::Null {

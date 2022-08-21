@@ -122,6 +122,26 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
         }
     }
 
+    if input.contents.len() == 2 {
+        if let LexerToken::BasicToken(Token {
+            kind: TokenKind::Identifier,
+            value,
+            end,
+            ..
+        }) = &input.contents[0]
+        {
+            return Ok(Expression::FunctionCall(
+                value.clone(),
+                Box::new(parse_as_expression(TokenGroup {
+                    delimiter: None,
+                    start: Some(*end),
+                    end: input.start,
+                    contents: vec![input.contents[1].clone()],
+                })?),
+            ));
+        }
+    }
+
     Err(errors::CellTailError::new(
         &input,
         format!("Invalid expression"),
@@ -177,10 +197,12 @@ fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
         ));
     }
 
-    Err(errors::CellTailError::new(
-        &input,
-        format!("Unexpected multi value expression in pattern: {:?}", input),
-    ))
+    Ok(Pattern::Expression(parse_as_expression(input)?))
+
+    // Err(errors::CellTailError::new(
+    //     &input,
+    //     format!("Unexpected multi value expression in pattern: {:?}", input),
+    // ))
 }
 
 pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {

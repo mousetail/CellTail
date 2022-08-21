@@ -1,4 +1,5 @@
 use crate::runtime::literal::Literal;
+use crate::runtime::pattern_list::PatternList;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]
@@ -81,10 +82,37 @@ impl BinaryOperator {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnaryOperator {
     Neg,
     Not,
+}
+
+impl UnaryOperator {
+    fn apply(self, value: Literal) -> Literal {
+        match self {
+            UnaryOperator::Neg => match value {
+                Literal::Number(v) => Literal::Number(-v),
+                Literal::Null => Literal::Null,
+                Literal::Tuple(k) => Literal::Tuple(
+                    [
+                        k[..k.len() - 1].to_vec(),
+                        vec![self.apply(k[k.len() - 1].clone())],
+                    ]
+                    .concat(),
+                ),
+            },
+            UnaryOperator::Not => match value {
+                Literal::Number(v) => Literal::Number(!v),
+                Literal::Null => Literal::Null,
+                Literal::Tuple(m) => Self::array_reverse(m),
+            },
+        }
+    }
+
+    fn array_reverse(tuple: Vec<Literal>) -> Literal {
+        todo!()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -98,10 +126,16 @@ pub enum Expression {
 }
 
 impl Expression {
-    pub fn evaluate(&self, vars: &HashMap<String, Literal>) -> Literal {
+    pub fn evaluate(
+        &self,
+        vars: &HashMap<String, Literal>,
+        functions: &HashMap<String, PatternList>,
+    ) -> Literal {
         match self {
             Expression::Literal(v) => v.clone(),
-            Expression::Tuple(v) => Literal::Tuple(v.iter().map(|i| i.evaluate(vars)).collect()),
+            Expression::Tuple(v) => {
+                Literal::Tuple(v.iter().map(|i| i.evaluate(vars, functions)).collect())
+            }
             Expression::Variable(name) => {
                 if name == "N" {
                     Literal::Null
@@ -109,10 +143,31 @@ impl Expression {
                     vars.get(name).expect("Undefined variable {name}").clone()
                 }
             }
-            Expression::BinaryOperator(op, ex1, ex2) => {
-                op.apply(Self::evaluate(&**ex1, vars), Self::evaluate(&**ex2, vars))
+            Expression::BinaryOperator(op, ex1, ex2) => op.apply(
+                Self::evaluate(&**ex1, vars, functions),
+                Self::evaluate(&**ex2, vars, functions),
+            ),
+            Expression::FunctionCall(function_name, argument) => {
+                if let Some(value) = functions
+                    .get(function_name)
+                    .expect(&format!(
+                        "Can't find a function with name {}",
+                        function_name
+                    ))
+                    .apply_first_matching_pattern(argument.evaluate(vars, functions), functions)
+                {
+                    value
+                } else {
+                    eprintln!(
+                        "WARNING! Attempt to call function {} with invalid arguments {:?}",
+                        function_name, argument
+                    );
+                    return Literal::Null;
+                }
             }
-            _ => todo!("Other expression types not implemented yet"),
+            Expression::UnaryOperator(operator, value) => {
+                operator.apply(value.evaluate(vars, functions))
+            }
         }
     }
 }
