@@ -1,3 +1,4 @@
+use crate::errors;
 use crate::lexer::{LexerToken, TokenGroup};
 use crate::runtime::expression::{BinaryOperator, Expression, UnaryOperator};
 use crate::runtime::literal::Literal;
@@ -22,7 +23,7 @@ impl Program {
     }
 
     fn add_function_rule(&mut self, function_name: String, rule: (Pattern, Expression)) {
-        if let Some(mut pattern_list) = self.functions.get_mut(&function_name) {
+        if let Some(pattern_list) = self.functions.get_mut(&function_name) {
             pattern_list.0.push(rule);
         } else {
             self.functions
@@ -115,16 +116,16 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
     panic!("Unexpected token: {:?}", input);
 }
 
-fn parse_as_pattern(input: TokenGroup) -> Pattern {
+fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
     assert!(
         input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None,
-        "Unexpected input delimited: {:?}",
+        "Unexpected input delimiter: {:?}",
         input.delimiter
     );
 
     if input.contents.len() == 1 {
-        return match &input.contents[0] {
-            LexerToken::Group(group) => parse_as_pattern(group.clone()),
+        return Ok(match &input.contents[0] {
+            LexerToken::Group(group) => parse_as_pattern(group.clone())?,
             LexerToken::BasicToken(Token {
                 kind: TokenKind::Number,
                 value,
@@ -145,23 +146,32 @@ fn parse_as_pattern(input: TokenGroup) -> Pattern {
                 value,
                 ..
             }) => Pattern::Literal(Literal::new_string_literal(value.clone().as_bytes())),
-            t => panic!("Unexpected token in match expression: {:?}", t),
-        };
+            t => {
+                return Err(errors::CellTailError::new(
+                    &input,
+                    format!("Unexpected token in match expression: {:?}", t),
+                ));
+            }
+        });
     }
 
     if input.contains(TokenKind::Comma) {
-        return Pattern::Tuple(
+        return Ok(Pattern::Tuple(
             input
                 .split_all(TokenKind::Comma)
                 .into_iter()
-                .map(parse_as_pattern)
-                .collect(),
-        );
+                .map(|i| parse_as_pattern(i))
+                .collect::<errors::CellTailResult<_>>()?,
+        ));
     }
-    todo!();
+
+    Err(errors::CellTailError::new(
+        &input,
+        format!("Unexpected multi value expression in pattern: {:?}", input),
+    ))
 }
 
-pub fn parse(input: TokenGroup) -> Program {
+pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
     let mut out = Program::new();
     for statement in input.contents {
         if let LexerToken::Group(group) = statement {
@@ -183,7 +193,10 @@ pub fn parse(input: TokenGroup) -> Program {
                         {
                             t.value.clone()
                         } else {
-                            panic!("Invalid function name on position {} {}", t.start, t.end)
+                            return Err(errors::CellTailError::new(
+                                &pattern,
+                                "Expected a function name".to_owned(),
+                            ));
                         };
                         out.add_function_rule(
                             function_name,
@@ -193,7 +206,7 @@ pub fn parse(input: TokenGroup) -> Program {
                                     contents: pattern.contents[1..].to_vec(),
                                     start: Some(t.end),
                                     end: group.end,
-                                }),
+                                })?,
                                 parse_as_expression(expression),
                             ),
                         );
@@ -202,14 +215,20 @@ pub fn parse(input: TokenGroup) -> Program {
                     }
                 }
 
-                out.add_rule((parse_as_pattern(pattern), parse_as_expression(expression)))
+                out.add_rule((parse_as_pattern(pattern)?, parse_as_expression(expression)))
             } else {
-                panic!("Statement missing ':' token")
+                return Err(errors::CellTailError::new(
+                    &group,
+                    "Missing : seperating pattern from expression".to_owned(),
+                ));
             }
         } else {
-            panic!("Unexpected statement type");
+            return Err(errors::CellTailError::new(
+                &statement,
+                "Invalid top-level statement".to_owned(),
+            ));
         }
     }
 
-    return out;
+    return Ok(out);
 }

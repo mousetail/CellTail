@@ -1,3 +1,4 @@
+use crate::errors::{self, SourceCodePosition};
 use crate::tokenizer::{Token, TokenKind};
 
 #[derive(Debug, Clone)]
@@ -14,7 +15,7 @@ impl TokenGroup {
             .contents
             .iter()
             .enumerate()
-            .find(|(index, i)| match i {
+            .find(|(_, i)| match i {
                 LexerToken::BasicToken(k) => k.kind == kind,
                 _ => false,
             })?
@@ -66,13 +67,22 @@ impl TokenGroup {
     }
 }
 
+impl errors::SourceCodePosition for TokenGroup {
+    fn get_start(&self) -> Option<usize> {
+        self.start
+    }
+    fn get_end(&self) -> Option<usize> {
+        self.end
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum LexerToken {
     Group(TokenGroup),
     BasicToken(Token),
 }
 
-impl LexerToken {
+impl errors::SourceCodePosition for LexerToken {
     fn get_start(&self) -> Option<usize> {
         match self {
             LexerToken::Group(k) => k.start,
@@ -87,7 +97,7 @@ impl LexerToken {
     }
 }
 
-pub fn lex(input: Vec<Token>) -> TokenGroup {
+pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
     let mut stack: Vec<TokenGroup> = vec![
         TokenGroup {
             delimiter: None,
@@ -179,5 +189,5 @@ pub fn lex(input: Vec<Token>) -> TokenGroup {
         panic!("Missing a ; at the end")
     }
 
-    stack.remove(0)
+    Ok(stack.remove(0))
 }

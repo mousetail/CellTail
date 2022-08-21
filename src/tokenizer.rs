@@ -1,3 +1,5 @@
+use crate::errors;
+
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Identifier,
@@ -20,6 +22,15 @@ pub struct Token {
     pub value: String,
 }
 
+impl errors::SourceCodePosition for Token {
+    fn get_start(&self) -> Option<usize> {
+        Some(self.start)
+    }
+    fn get_end(&self) -> Option<usize> {
+        Some(self.end)
+    }
+}
+
 fn match_rest<T>(input: &Vec<char>, counter: &mut usize, match_fn: T, kind: TokenKind) -> Token
 where
     T: Fn(char) -> bool,
@@ -39,7 +50,7 @@ where
     }
 }
 
-pub fn tokenize(input: Vec<char>) -> Vec<Token> {
+pub fn tokenize(input: &Vec<char>) -> errors::CellTailResult<Vec<Token>> {
     let mut counter = 0;
     let mut result: Vec<Token> = vec![];
 
@@ -125,11 +136,14 @@ pub fn tokenize(input: Vec<char>) -> Vec<Token> {
                 });
                 counter += 1
             }
-            _ => {
-                todo!()
+            token => {
+                return Err(errors::CellTailError::new(
+                    &errors::PointError(counter),
+                    format!("Unexpected token: {}", token),
+                ))
             }
         }
     }
 
-    result
+    Ok(result)
 }

@@ -1,8 +1,6 @@
-use std::io::*;
-
+use crate::errors;
 use crate::parser;
 use crate::runtime::literal::Literal;
-use crate::runtime::pattern_list::PatternList;
 
 #[derive(Clone, PartialEq, Debug)]
 struct Cell {
@@ -31,7 +29,7 @@ fn parse_literal(lit: Literal) -> (Literal, Literal, Literal) {
     }
 }
 
-pub fn interpret(program: parser::Program, input: Vec<u8>) {
+pub fn interpret(program: parser::Program, input: Vec<u8>) -> errors::CellTailResult<()> {
     let mut cells: Vec<Cell> = input
         .iter()
         .map(|i| Cell {
@@ -130,4 +128,6 @@ pub fn interpret(program: parser::Program, input: Vec<u8>) {
             })
             .collect::<String>()
     );
+
+    Ok(())
 }
