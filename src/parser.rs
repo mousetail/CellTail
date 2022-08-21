@@ -40,15 +40,15 @@ impl Program {
     }
 }
 
-fn parse_as_expression(input: TokenGroup) -> Expression {
+fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> {
     assert!(
         input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None,
         "Unexpected input delimiter: {:?}",
         input.delimiter
     );
     if input.contents.len() == 1 {
-        return match &input.contents[0] {
-            LexerToken::Group(group) => parse_as_expression(group.clone()),
+        return Ok(match &input.contents[0] {
+            LexerToken::Group(group) => parse_as_expression(group.clone())?,
             LexerToken::BasicToken(Token {
                 kind: TokenKind::Number,
                 value,
@@ -64,18 +64,23 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
                 value,
                 ..
             }) => Expression::Literal(Literal::new_string_literal(value.clone().as_bytes())),
-            t => panic!("Unexpected token in match expression: {:?}", t),
-        };
+            t => {
+                return Err(errors::CellTailError::new(
+                    &input,
+                    format!("Unexpected token in match expression: {:?}", t),
+                ))
+            }
+        });
     }
 
     if input.contains(TokenKind::Comma) {
-        return Expression::Tuple(
+        return Ok(Expression::Tuple(
             input
                 .split_all(TokenKind::Comma)
                 .into_iter()
                 .map(parse_as_expression)
-                .collect(),
-        );
+                .collect::<errors::CellTailResult<Vec<_>>>()?,
+        ));
     }
 
     for operator in [('-', UnaryOperator::Neg), ('!', UnaryOperator::Not)] {
@@ -85,15 +90,15 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
         })) = input.contents.first()
         {
             if *op == operator.0 {
-                return Expression::UnaryOperator(
+                return Ok(Expression::UnaryOperator(
                     operator.1,
                     Box::new(parse_as_expression(TokenGroup {
                         delimiter: None,
                         contents: input.contents[1..].to_vec(),
                         start: input.start,
                         end: input.end,
-                    })),
-                );
+                    })?),
+                ));
             }
         }
     }
@@ -105,15 +110,18 @@ fn parse_as_expression(input: TokenGroup) -> Expression {
         ('/', BinaryOperator::Divide),
     ] {
         if let Some((part1, _op, part2)) = input.split_first(TokenKind::Operator(operator.0)) {
-            return Expression::BinaryOperator(
+            return Ok(Expression::BinaryOperator(
                 operator.1,
-                Box::new(parse_as_expression(part1)),
-                Box::new(parse_as_expression(part2)),
-            );
+                Box::new(parse_as_expression(part1)?),
+                Box::new(parse_as_expression(part2)?),
+            ));
         }
     }
 
-    panic!("Unexpected token: {:?}", input);
+    Err(errors::CellTailError::new(
+        &input,
+        format!("Invalid expression"),
+    ))
 }
 
 fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
@@ -207,7 +215,7 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                                     start: Some(t.end),
                                     end: group.end,
                                 })?,
-                                parse_as_expression(expression),
+                                parse_as_expression(expression)?,
                             ),
                         );
 
@@ -215,7 +223,7 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                     }
                 }
 
-                out.add_rule((parse_as_pattern(pattern)?, parse_as_expression(expression)))
+                out.add_rule((parse_as_pattern(pattern)?, parse_as_expression(expression)?))
             } else {
                 return Err(errors::CellTailError::new(
                     &group,
