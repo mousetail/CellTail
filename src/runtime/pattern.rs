@@ -10,10 +10,10 @@ pub enum Pattern {
 }
 
 impl Pattern {
-    pub fn matches(&self, value: Literal) -> Option<HashMap<String, Literal>> {
+    pub fn matches(&self, value: &Literal) -> Option<HashMap<String, Literal>> {
         match self {
             Pattern::Literal(lit) => {
-                if *lit == value {
+                if lit == value {
                     Some(HashMap::new())
                 } else {
                     // println!("No match: literals {:?} and {:?} don't match", lit, value);
@@ -34,7 +34,15 @@ impl Pattern {
                     let mut out = HashMap::new();
                     for (pat1, val1) in tup1.iter().zip(tup2) {
                         if let Some(vars) = pat1.matches(val1) {
-                            out.extend(vars);
+                            for var in vars {
+                                if let Some(previous_value) = out.get(&var.0) {
+                                    if previous_value != &var.1 {
+                                        return None;
+                                    }
+                                } else {
+                                    out.insert(var.0, var.1);
+                                }
+                            }
                         } else {
                             return None;
                         }

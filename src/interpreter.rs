@@ -2,6 +2,7 @@ use std::io::*;
 
 use crate::parser;
 use crate::runtime::literal::Literal;
+use crate::runtime::pattern_list::PatternList;
 
 #[derive(Clone, PartialEq, Debug)]
 struct Cell {
@@ -30,7 +31,7 @@ fn parse_literal(lit: Literal) -> (Literal, Literal, Literal) {
     }
 }
 
-pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
+pub fn interpret(program: parser::Program, input: Vec<u8>) {
     let mut cells: Vec<Cell> = input
         .iter()
         .map(|i| Cell {
@@ -50,51 +51,52 @@ pub fn interpret(statements: Vec<parser::Statement>, input: Vec<u8>) {
                 || cell.value_from_top != Literal::Null
                 || cell.value_from_right != Literal::Null
             {
-                for statement in &statements {
-                    if let parser::Statement::Rule(pattern, expression) = statement {
-                        if let Some(vars) = pattern.matches(Literal::Tuple(vec![
+                if let Some(raw_result) =
+                    program
+                        .rules
+                        .apply_first_matching_pattern(Literal::Tuple(vec![
                             cell.value_from_left.clone(),
                             cell.value_from_top.clone(),
                             cell.value_from_right.clone(),
-                        ])) {
-                            let result = parse_literal(expression.evaluate(&vars));
-                            if index == 0 && result.0 != Literal::Null {
-                                next_value.insert(0, Cell::new());
-                                cell_offset += 1;
-                                modified = true;
-                            }
+                        ]))
+                {
+                    let result = parse_literal(raw_result);
 
-                            if index + cell_offset >= next_value.len() - 1 {
-                                next_value.push(Cell::new());
-                                modified = true;
-                            }
-
-                            if if (index + cell_offset == 0) {
-                                &Literal::Null
-                            } else {
-                                &next_value[index + cell_offset - 1].value_from_right
-                            } != &result.0
-                                || next_value[index + cell_offset].value_from_top != result.1
-                                || if index + cell_offset >= next_value.len() - 1 {
-                                    &Literal::Null
-                                } else {
-                                    &next_value[index + cell_offset + 1].value_from_right
-                                } != &result.2
-                            {
-                                modified = true;
-                            }
-
-                            if index + cell_offset > 0 {
-                                next_value[index + cell_offset - 1].value_from_right = result.0;
-                            }
-                            next_value[index + cell_offset].value_from_top = result.1;
-                            if index + cell_offset < next_value.len() - 1 {
-                                next_value[index + cell_offset + 1].value_from_left = result.2;
-                            }
-
-                            break;
-                        }
+                    if index == 0 && result.0 != Literal::Null {
+                        next_value.insert(0, Cell::new());
+                        cell_offset += 1;
+                        modified = true;
                     }
+
+                    if index + cell_offset >= next_value.len() - 1 {
+                        next_value.push(Cell::new());
+                        modified = true;
+                    }
+
+                    if if (index + cell_offset == 0) {
+                        &Literal::Null
+                    } else {
+                        &next_value[index + cell_offset - 1].value_from_right
+                    } != &result.0
+                        || next_value[index + cell_offset].value_from_top != result.1
+                        || if index + cell_offset >= next_value.len() - 1 {
+                            &Literal::Null
+                        } else {
+                            &next_value[index + cell_offset + 1].value_from_right
+                        } != &result.2
+                    {
+                        modified = true;
+                    }
+
+                    if index + cell_offset > 0 {
+                        next_value[index + cell_offset - 1].value_from_right = result.0;
+                    }
+                    next_value[index + cell_offset].value_from_top = result.1;
+                    if index + cell_offset < next_value.len() - 1 {
+                        next_value[index + cell_offset + 1].value_from_left = result.2;
+                    }
+
+                    break;
                 }
             }
         }

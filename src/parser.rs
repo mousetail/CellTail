@@ -2,13 +2,41 @@ use crate::lexer::{LexerToken, TokenGroup};
 use crate::runtime::expression::{BinaryOperator, Expression, UnaryOperator};
 use crate::runtime::literal::Literal;
 use crate::runtime::pattern::Pattern;
+use crate::runtime::pattern_list::PatternList;
 use crate::tokenizer::{Token, TokenKind};
+use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
-pub enum Statement {
-    Ops(String),
-    Function(String, Pattern, Expression),
-    Rule(Pattern, Expression),
+pub struct Program {
+    pub functions: HashMap<String, PatternList>,
+    pub rules: PatternList,
+    pub attributes: HashMap<String, Literal>,
+}
+
+impl Program {
+    fn new() -> Program {
+        Program {
+            functions: HashMap::new(),
+            rules: PatternList(Vec::new()),
+            attributes: HashMap::new(),
+        }
+    }
+
+    fn add_function_rule(&mut self, function_name: String, rule: (Pattern, Expression)) {
+        if let Some(mut pattern_list) = self.functions.get_mut(&function_name) {
+            pattern_list.0.push(rule);
+        } else {
+            self.functions
+                .insert(function_name, PatternList(vec![rule]));
+        }
+    }
+
+    fn add_rule(&mut self, rule: (Pattern, Expression)) {
+        self.rules.0.push(rule);
+    }
+
+    fn add_attribute(&mut self, name: String, value: Literal) {
+        self.attributes.insert(name, value);
+    }
 }
 
 fn parse_as_expression(input: TokenGroup) -> Expression {
@@ -133,8 +161,8 @@ fn parse_as_pattern(input: TokenGroup) -> Pattern {
     todo!();
 }
 
-pub fn parse(input: TokenGroup) -> Vec<Statement> {
-    let mut out = vec![];
+pub fn parse(input: TokenGroup) -> Program {
+    let mut out = Program::new();
     for statement in input.contents {
         if let LexerToken::Group(group) = statement {
             if let Some((pattern, _operator, expression)) = group.split_first(TokenKind::Colon) {
@@ -157,25 +185,24 @@ pub fn parse(input: TokenGroup) -> Vec<Statement> {
                         } else {
                             panic!("Invalid function name on position {} {}", t.start, t.end)
                         };
-                        out.push(Statement::Function(
+                        out.add_function_rule(
                             function_name,
-                            parse_as_pattern(TokenGroup {
-                                delimiter: None,
-                                contents: pattern.contents[1..].to_vec(),
-                                start: Some(t.end),
-                                end: group.end,
-                            }),
-                            parse_as_expression(expression),
-                        ));
+                            (
+                                parse_as_pattern(TokenGroup {
+                                    delimiter: None,
+                                    contents: pattern.contents[1..].to_vec(),
+                                    start: Some(t.end),
+                                    end: group.end,
+                                }),
+                                parse_as_expression(expression),
+                            ),
+                        );
 
                         continue;
                     }
                 }
 
-                out.push(Statement::Rule(
-                    parse_as_pattern(pattern),
-                    parse_as_expression(expression),
-                ))
+                out.add_rule((parse_as_pattern(pattern), parse_as_expression(expression)))
             } else {
                 panic!("Statement missing ':' token")
             }
