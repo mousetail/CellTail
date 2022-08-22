@@ -12,6 +12,7 @@ pub enum TokenKind {
     Colon,
     Semicolon,
     Comment,
+    Equals,
 }
 
 #[derive(Debug, Clone)]
@@ -130,6 +131,15 @@ pub fn tokenize(input: &Vec<char>) -> errors::CellTailResult<Vec<Token>> {
             ';' => {
                 result.push(Token {
                     kind: TokenKind::Semicolon,
+                    start: counter,
+                    end: counter + 1,
+                    value: [input[counter]].iter().collect(),
+                });
+                counter += 1
+            }
+            '=' => {
+                result.push(Token {
+                    kind: TokenKind::Equals,
                     start: counter,
                     end: counter + 1,
                     value: [input[counter]].iter().collect(),

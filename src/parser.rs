@@ -145,6 +145,57 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
     ))
 }
 
+fn parse_as_number(input: &TokenGroup) -> errors::CellTailResult<isize> {
+    if input.contents.len() == 2{
+        if let LexerToken::BasicToken(Token{kind: TokenKind::Operator('-'), ..}) = input.contents[0] {
+
+        }
+    } else if input.contents.len() == 1 {
+
+    }
+
+    Ok(0)
+}
+
+fn parse_single_attribute(name: &str, value: TokenGroup, attributes: &mut attributes::Attributes) -> errors::CellTailResult<()> {
+    match name {
+        "I" | "Input" => {
+            if value.contains(TokenKind::Comma) {
+                let result = value.split_all(TokenKind::Comma).iter().map(
+                    parse_as_number
+                );
+
+            }
+            Ok(())
+        }
+        "O" | "Output" => {
+            Ok(())
+        }
+        "D" | "Debug" => {
+            Ok(())
+        }
+        m => {
+            Err(errors::CellTailError::new(&value, format!("Unexpected property name {}, expected one of 'Input', 'I', 'Output', 'O', 'Debug', 'D'", m)))
+        }
+    }
+}
+
+fn parse_attribute(input: TokenGroup, attributes: &mut attributes::Attributes) -> errors::CellTailResult<()> {
+    if let Some((name, op, value)) = input.split_first(TokenKind::Equals) {
+        if name.contents.len() != 1{
+            Err(errors::CellTailError::new(&name, "Too long attribute name".to_owned()))?
+        };
+
+        if let LexerToken::BasicToken(Token{ kind: TokenKind::Identifier, value: name, ..}) = &name.contents[0] {
+            parse_single_attribute(name, value, attributes)
+        } else {
+            Err(errors::CellTailError::new(&input, "Expected a attribute name".to_owned()))
+        }
+    } else {
+        Err(errors::CellTailError::new(&input, "Invalid attribute definition".to_owned()))
+    }
+}
+
 fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
     assert!(
         input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None,
