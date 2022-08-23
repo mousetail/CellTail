@@ -191,7 +191,7 @@ fn parse_single_attribute(name: &str, value: TokenGroup, attrs: &mut attributes:
 
                 match input_type.to_uppercase().as_str() {
                     "I" | "STDIN" => Ok(attrs.input_mode = attributes::InputSource::StdIn(input_format)),
-                    "C" | "CMD" | "CommandLineArguments" | "ARGS" | "ARGV" | "A" => Ok(attrs.input_mode = attributes::InputSource::Arg(input_format)),
+                    "C" | "CMD" | "COMMANDLINEARGUMENTS" | "ARGS" | "ARGV" | "A" => Ok(attrs.input_mode = attributes::InputSource::Arg(input_format)),
                     _ => Err(errors::CellTailError::new(&value, "Invalid value for input mode".to_owned()))
                 }
             } else {
