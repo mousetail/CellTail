@@ -147,26 +147,56 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
 
 fn parse_as_number(input: &TokenGroup) -> errors::CellTailResult<isize> {
     if input.contents.len() == 2{
-        if let LexerToken::BasicToken(Token{kind: TokenKind::Operator('-'), ..}) = input.contents[0] {
-
+        if let(LexerToken::BasicToken(Token{kind: TokenKind::Operator('-'), ..}), LexerToken::BasicToken(Token{kind: TokenKind::Number, value, ..})) = (&input.contents[0], &input.contents[1]) {
+            Ok(-value.parse().map_err(|k|errors::CellTailError::new(input, format!("Failed to parse negative number literal: {k:?}")))?)
+        } else {
+            Err(errors::CellTailError::new(input, "Invalid negative number literal".to_owned()))
         }
     } else if input.contents.len() == 1 {
-
+        if let LexerToken::BasicToken(Token{kind: TokenKind::Number, value, ..}) = &input.contents[0] {
+            value.parse().map_err(|k|errors::CellTailError::new(input, format!("Failed to parse positive number literal: {k:?}")))
+        } else {
+            Err(errors::CellTailError::new(input, "Invalid positive number literal".to_owned()))
+        }
+    } else {
+        Err(errors::CellTailError::new(input, "Empty or too long number literal".to_owned()))
     }
-
-    Ok(0)
 }
 
-fn parse_single_attribute(name: &str, value: TokenGroup, attributes: &mut attributes::Attributes) -> errors::CellTailResult<()> {
+fn parse_single_attribute(name: &str, value: TokenGroup, attrs: &mut attributes::Attributes) -> errors::CellTailResult<()> {
     match name {
         "I" | "Input" => {
             if value.contains(TokenKind::Comma) {
                 let result = value.split_all(TokenKind::Comma).iter().map(
                     parse_as_number
-                );
+                ).collect::<errors::CellTailResult<Vec<_>>>()?;
 
+                Ok(attrs.input_mode = attributes::InputSource::Constant(result))
+            } else if let [
+                LexerToken::BasicToken(Token{
+                kind: TokenKind::Identifier,
+                value: input_type,
+                ..
+            }), LexerToken::BasicToken(Token{
+                kind: TokenKind::Identifier,
+                value: input_format,
+                ..
+            }),
+            ] = value.contents.as_slice() {
+                let input_format = match input_format.to_uppercase().as_str() {
+                    "N" => attributes::IOFormat::Numbers,
+                    "C" => attributes::IOFormat::Characters,
+                    _ => Err(errors::CellTailError::new(&value, "Invalid value for input format".to_owned()))?
+                };
+
+                match input_type.to_uppercase().as_str() {
+                    "I" | "STDIN" => Ok(attrs.input_mode = attributes::InputSource::StdIn(input_format)),
+                    "C" | "CMD" | "CommandLineArguments" | "ARGS" | "ARGV" | "A" => Ok(attrs.input_mode = attributes::InputSource::Arg(input_format)),
+                    _ => Err(errors::CellTailError::new(&value, "Invalid value for input mode".to_owned()))
+                }
+            } else {
+                Err(errors::CellTailError::new(&value, "Invalid attribute value".to_owned()))
             }
-            Ok(())
         }
         "O" | "Output" => {
             Ok(())

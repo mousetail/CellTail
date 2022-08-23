@@ -6,13 +6,13 @@ pub enum IOFormat {
 pub enum InputSource {
     StdIn(IOFormat),
     Arg(IOFormat),
-    Constant(Vec<usize>),
+    Constant(Vec<isize>),
 }
 
 pub struct Attributes {
-    input_mode: InputSource,
-    output_mode: IOFormat,
-    debug: bool,
+    pub input_mode: InputSource,
+    pub output_mode: IOFormat,
+    pub debug: bool,
 }
 
 impl Attributes {
