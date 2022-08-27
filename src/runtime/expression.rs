@@ -148,13 +148,15 @@ impl Expression {
                 Self::evaluate(&**ex2, vars, functions),
             ),
             Expression::FunctionCall(function_name, argument) => {
+                let function_argument = argument.evaluate(vars, functions);
+
                 if let Some(value) = functions
                     .get(function_name)
                     .expect(&format!(
                         "Can't find a function with name {}",
                         function_name
                     ))
-                    .apply_first_matching_pattern(argument.evaluate(vars, functions), functions)
+                    .apply_first_matching_pattern(function_argument.clone(), functions)
                 {
                     value
                 } else {

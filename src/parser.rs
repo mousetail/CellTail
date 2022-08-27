@@ -8,6 +8,7 @@ use crate::runtime::pattern_list::PatternList;
 use crate::tokenizer::{Token, TokenKind};
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct Program {
     pub functions: HashMap<String, PatternList>,
     pub rules: PatternList,
@@ -404,7 +405,7 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                             (
                                 parse_as_pattern(TokenGroup {
                                     delimiter: None,
-                                    contents: pattern.contents[1..].to_vec(),
+                                    contents: pattern.contents[2..].to_vec(),
                                 })?,
                                 parse_as_expression(expression)?,
                             ),

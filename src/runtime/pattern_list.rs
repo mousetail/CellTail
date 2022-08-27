@@ -3,6 +3,7 @@ use crate::runtime::literal::Literal;
 use crate::runtime::pattern::Pattern;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct PatternList(pub Vec<(Pattern, Expression)>);
 
 impl PatternList {

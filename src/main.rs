@@ -11,14 +11,11 @@ mod tokenizer;
 fn parse_and_run_code(code: &Vec<char>) -> errors::CellTailResult<()> {
     let tokens = tokenizer::tokenize(code)?;
     let lexical_tokens = lexer::lex(tokens)?;
-
-    // println!("{:#?}", lexical_tokens);
     let structure = parser::parse(lexical_tokens)?;
 
-    // let mut buff: Vec<u8> = vec![];
-    // stdin()
-    //     .read_to_end(&mut buff)
-    //     .expect("Failed to read input file");
+    if structure.attributes.debug {
+        println!("{:?}", structure);
+    }
 
     interpreter::run_program(structure, env::args().skip(2).collect())
 }

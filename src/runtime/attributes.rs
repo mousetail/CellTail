@@ -1,14 +1,17 @@
+#[derive(Debug)]
 pub enum IOFormat {
     Characters,
     Numbers,
 }
 
+#[derive(Debug)]
 pub enum InputSource {
     StdIn(IOFormat),
     Arg(IOFormat),
     Constant(Vec<isize>),
 }
 
+#[derive(Debug)]
 pub struct Attributes {
     pub input_mode: InputSource,
     pub output_mode: IOFormat,

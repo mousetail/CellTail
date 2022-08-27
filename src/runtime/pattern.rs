@@ -18,7 +18,7 @@ impl Pattern {
                 if lit == value {
                     Some(HashMap::new())
                 } else {
-                    // println!("No match: literals {:?} and {:?} don't match", lit, value);
+                    //println!("No match: literals {:?} and {:?} don't match", lit, value);
                     None
                 }
             }
@@ -30,7 +30,7 @@ impl Pattern {
             Pattern::Tuple(tup1) => {
                 if let Literal::Tuple(tup2) = value {
                     if tup2.len() != tup1.len() {
-                        // println!("No match: length is different {:?} vs {:?}", tup2, tup1);
+                        //println!("No match: length is different {:?} vs {:?}", tup2, tup1);
                         return None;
                     }
                     let mut out = HashMap::new();
@@ -39,6 +39,7 @@ impl Pattern {
                             for var in vars {
                                 if let Some(previous_value) = out.get(&var.0) {
                                     if previous_value != &var.1 {
+                                        //println!("Tuple doesn't match vars");
                                         return None;
                                     }
                                 } else {
@@ -46,12 +47,14 @@ impl Pattern {
                                 }
                             }
                         } else {
+                            //println!("Contents doesn't match");
                             return None;
                         }
                     }
 
                     Some(out)
                 } else {
+                    // println!("Matching tuple with non tuple");
                     None
                 }
             }
@@ -60,6 +63,7 @@ impl Pattern {
                 if &new_value == value {
                     Some(HashMap::new())
                 } else {
+                    //println!("Expression doesn't match");
                     None
                 }
             }

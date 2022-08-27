@@ -31,6 +31,57 @@ fn parse_literal(lit: Literal) -> (Literal, Literal, Literal) {
     }
 }
 
+fn interpret_iteration(cells: &Vec<Cell>, program: &parser::Program) -> Vec<Cell> {
+    let mut next_value = cells.clone();
+    let mut cell_offset = 0;
+    for (index, cell) in cells.iter().enumerate() {
+        if cell.value_from_left != Literal::Null
+            || cell.value_from_top != Literal::Null
+            || cell.value_from_right != Literal::Null
+        {
+            if let Some(raw_result) = program.rules.apply_first_matching_pattern(
+                Literal::Tuple(vec![
+                    cell.value_from_left.clone(),
+                    cell.value_from_top.clone(),
+                    cell.value_from_right.clone(),
+                ]),
+                &program.functions,
+            ) {
+                let result = parse_literal(raw_result);
+
+                if index == 0 && result.0 != Literal::Null {
+                    next_value.insert(0, Cell::new());
+                    cell_offset += 1;
+                }
+
+                if index + cell_offset >= next_value.len() - 1 {
+                    next_value.push(Cell::new());
+                }
+
+                if index + cell_offset > 0 {
+                    next_value[index + cell_offset - 1].value_from_right = result.0;
+                }
+                next_value[index + cell_offset].value_from_top = result.1;
+                if index + cell_offset < next_value.len() - 1 {
+                    next_value[index + cell_offset + 1].value_from_left = result.2;
+                }
+            }
+        }
+    }
+
+    return next_value;
+}
+
+fn print_cells(cells: &Vec<Cell>) {
+    for cell in cells {
+        print!(
+            "(L={} M={} R={})\t",
+            cell.value_from_left, cell.value_from_top, cell.value_from_right
+        );
+    }
+    println!();
+}
+
 fn interpret(
     program: &parser::Program,
     input: Vec<isize>,
@@ -44,75 +95,18 @@ fn interpret(
         })
         .collect();
 
+    if program.attributes.debug {
+        print_cells(&cells);
+    }
+
     let mut modified = true;
     while modified {
-        modified = false;
-        let mut next_value = cells.clone();
-        let mut cell_offset = 0;
-        for (index, cell) in cells.iter().enumerate() {
-            if cell.value_from_left != Literal::Null
-                || cell.value_from_top != Literal::Null
-                || cell.value_from_right != Literal::Null
-            {
-                if let Some(raw_result) = program.rules.apply_first_matching_pattern(
-                    Literal::Tuple(vec![
-                        cell.value_from_left.clone(),
-                        cell.value_from_top.clone(),
-                        cell.value_from_right.clone(),
-                    ]),
-                    &program.functions,
-                ) {
-                    let result = parse_literal(raw_result);
-
-                    if index == 0 && result.0 != Literal::Null {
-                        next_value.insert(0, Cell::new());
-                        cell_offset += 1;
-                        modified = true;
-                    }
-
-                    if index + cell_offset >= next_value.len() - 1 {
-                        next_value.push(Cell::new());
-                        modified = true;
-                    }
-
-                    if if index + cell_offset == 0 {
-                        &Literal::Null
-                    } else {
-                        &next_value[index + cell_offset - 1].value_from_right
-                    } != &result.0
-                        || next_value[index + cell_offset].value_from_top != result.1
-                        || if index + cell_offset >= next_value.len() - 1 {
-                            &Literal::Null
-                        } else {
-                            &next_value[index + cell_offset + 1].value_from_right
-                        } != &result.2
-                    {
-                        modified = true;
-                    }
-
-                    if index + cell_offset > 0 {
-                        next_value[index + cell_offset - 1].value_from_right = result.0;
-                    }
-                    next_value[index + cell_offset].value_from_top = result.1;
-                    if index + cell_offset < next_value.len() - 1 {
-                        next_value[index + cell_offset + 1].value_from_left = result.2;
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        cells = next_value;
+        let new_cells = interpret_iteration(&cells, program);
+        modified = cells != new_cells;
+        cells = new_cells;
 
         if program.attributes.debug {
-            for cell in &cells {
-                print!(
-                    "(L={} M={} R={})\t",
-                    cell.value_from_left, cell.value_from_top, cell.value_from_right
-                );
-            }
-            println!();
+            print_cells(&cells);
 
             std::thread::sleep(std::time::Duration::from_secs_f32(0.25))
         }
