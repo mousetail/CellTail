@@ -20,14 +20,7 @@ fn parse_and_run_code(code: &Vec<char>) -> errors::CellTailResult<()> {
     //     .read_to_end(&mut buff)
     //     .expect("Failed to read input file");
 
-    interpreter::interpret(
-        structure,
-        env::args()
-            .nth(2)
-            .expect("Need 2 arguments")
-            .bytes()
-            .collect(),
-    )
+    interpreter::run_program(structure, env::args().skip(2).collect())
 }
 
 fn main() {

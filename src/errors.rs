@@ -7,6 +7,8 @@ pub trait SourceCodePosition {
 pub struct PointError(pub usize);
 #[derive(Debug)]
 pub struct RangeError(pub usize, pub usize);
+#[derive(Debug)]
+pub struct UnkownLocationError;
 
 impl SourceCodePosition for PointError {
     fn get_start(&self) -> Option<usize> {
@@ -23,6 +25,15 @@ impl SourceCodePosition for RangeError {
     }
     fn get_end(&self) -> Option<usize> {
         Some(self.1)
+    }
+}
+
+impl SourceCodePosition for UnkownLocationError {
+    fn get_start(&self) -> Option<usize> {
+        None
+    }
+    fn get_end(&self) -> Option<usize> {
+        None
     }
 }
 

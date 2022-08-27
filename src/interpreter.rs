@@ -1,6 +1,8 @@
 use crate::errors;
 use crate::parser;
+use crate::runtime::attributes;
 use crate::runtime::literal::Literal;
+use std::io::Read;
 
 #[derive(Clone, PartialEq, Debug)]
 struct Cell {
@@ -29,7 +31,10 @@ fn parse_literal(lit: Literal) -> (Literal, Literal, Literal) {
     }
 }
 
-pub fn interpret(program: parser::Program, input: Vec<u8>) -> errors::CellTailResult<()> {
+fn interpret(
+    program: &parser::Program,
+    input: Vec<isize>,
+) -> errors::CellTailResult<Vec<Option<isize>>> {
     let mut cells: Vec<Cell> = input
         .iter()
         .map(|i| Cell {
@@ -100,33 +105,109 @@ pub fn interpret(program: parser::Program, input: Vec<u8>) -> errors::CellTailRe
 
         cells = next_value;
 
-        for cell in &cells {
-            print!(
-                "(L={} M={} R={})\t",
-                cell.value_from_left, cell.value_from_top, cell.value_from_right
-            );
-        }
-        println!();
+        if program.attributes.debug {
+            for cell in &cells {
+                print!(
+                    "(L={} M={} R={})\t",
+                    cell.value_from_left, cell.value_from_top, cell.value_from_right
+                );
+            }
+            println!();
 
-        std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
+            std::thread::sleep(std::time::Duration::from_secs_f32(0.25))
+        }
+
+        // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
     }
 
-    println!(
-        "{}",
-        cells
-            .iter()
-            .filter(|i| if let Literal::Null = i.value_from_top {
+    Ok(cells
+        .iter()
+        .filter(|i| {
+            if let Literal::Null = i.value_from_top {
                 false
             } else {
                 true
-            })
-            .map(|i| if let Literal::Number(k) = i.value_from_top {
-                k.try_into().ok().unwrap_or(80u8) as char
+            }
+        })
+        .map(|i| {
+            if let Literal::Number(k) = i.value_from_top {
+                Some(k)
             } else {
-                '?'
-            })
-            .collect::<String>()
-    );
+                None
+            }
+        })
+        .collect::<Vec<_>>())
+}
+
+fn get_contents(data: &str, format: &attributes::IOFormat) -> errors::CellTailResult<Vec<isize>> {
+    match format {
+        attributes::IOFormat::Characters => Ok(data.chars().map(|i| i as u8 as isize).collect()),
+        attributes::IOFormat::Numbers => data
+            .split(',')
+            .map(str::parse)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| {
+                errors::CellTailError::new(
+                    &errors::UnkownLocationError,
+                    format!("Failed to parse command line arguments: {:?}", e),
+                )
+            }),
+    }
+}
+
+pub fn run_program(
+    program: parser::Program,
+    command_line_arguments: Vec<String>,
+) -> errors::CellTailResult<()> {
+    let input = match &program.attributes.input_mode {
+        attributes::InputSource::Arg(m) => {
+            if command_line_arguments.len() != 1 {
+                Err(errors::CellTailError::new(
+                    &errors::UnkownLocationError,
+                    format!("Expected a command line argument"),
+                ))?
+            }
+            get_contents(&command_line_arguments[0], m)?
+        }
+        attributes::InputSource::StdIn(m) => {
+            let mut file_contents: Vec<u8> = vec![];
+            std::io::stdin()
+                .read_to_end(&mut file_contents)
+                .expect("Failed to read contents of STDIN");
+
+            get_contents(std::str::from_utf8(&file_contents).unwrap(), m)?
+        }
+        attributes::InputSource::Constant(constant) => constant.to_vec(),
+    };
+
+    let result = interpret(&program, input)?;
+
+    match &program.attributes.output_mode {
+        attributes::IOFormat::Characters => {
+            print!(
+                "{}",
+                result
+                    .iter()
+                    .map(|i| match i {
+                        Some(i @ 0..=256) => *i as u8 as char,
+                        _ => '?',
+                    })
+                    .collect::<String>()
+            )
+        }
+        attributes::IOFormat::Numbers => {
+            print!(
+                "{}",
+                result
+                    .iter()
+                    .map(|i| match i {
+                        Some(i) => format!("{}, ", i),
+                        _ => "???, ".to_owned(),
+                    })
+                    .collect::<String>()
+            )
+        }
+    }
 
     Ok(())
 }

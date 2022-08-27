@@ -1,14 +1,20 @@
-I=-1;
-N,-1,N :                        N,(1,1,1),N;
+I=-1; # Start with the special value -1
+D=false; # Debug = False
+O=N; # Output as numbers
+N,-1,N :                        N,(1,1,1),N; # Initial value: 0, 0, 0
 # Recursing base case to prevent infinite loop
-14, N,N:                        N,N,N;
+174, N,N:                        N,N,N;
 
 # number, factor, modulo
-A, (number, factor, 0), N:      N, (number + 1), N;
-# Found a prime
-A, (number, number, modulo):    N, number, number + 1;
+
+# Found a prime, number equals factor
+A, (number, number, modulo), N:    N, number, number + 1;
+
+# Modulo is 0, so it's not a prime
+A, (number, factor, 0), N:      N, (number + 1, 2), N;
+
 # Did not find a prime or 0 factor
 A, (number, factor), N:         N, (number, factor, number%factor), N;
-A, (number, factor, modulo), N: N, (number, factor+1, number%factor+1), N;
+A, (number, factor, modulo), N: N, (number, factor+1, number%(factor+1)), N;
 # First Step
 number, N, N:                   N, (number, 1, number), N;
