@@ -3,7 +3,9 @@ pub trait SourceCodePosition {
     fn get_end(&self) -> Option<usize>;
 }
 
+#[derive(Debug)]
 pub struct PointError(pub usize);
+#[derive(Debug)]
 pub struct RangeError(pub usize, pub usize);
 
 impl SourceCodePosition for PointError {
@@ -31,7 +33,13 @@ pub struct CellTailError {
 }
 
 impl CellTailError {
-    pub fn new<T: SourceCodePosition>(location: &T, message: String) -> CellTailError {
+    pub fn new<T>(location: &T, message: String) -> CellTailError
+    where
+        T: SourceCodePosition + std::fmt::Debug,
+    {
+        if location.get_start() > location.get_end() {
+            panic!("{:?} is invalid: start > end", location);
+        }
         CellTailError {
             start: location.get_start(),
             end: location.get_end(),

@@ -1,4 +1,4 @@
-#f=-1
+I=-1;
 N,-1,N :                        N,(1,1,1),N;
 # Recursing base case to prevent infinite loop
 14, N,N:                        N,N,N;

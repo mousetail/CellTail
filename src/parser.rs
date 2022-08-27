@@ -92,8 +92,6 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
                     Box::new(parse_as_expression(TokenGroup {
                         delimiter: None,
                         contents: input.contents[1..].to_vec(),
-                        start: input.start,
-                        end: input.end,
                     })?),
                 ));
             }
@@ -123,7 +121,6 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
         if let LexerToken::BasicToken(Token {
             kind: TokenKind::Identifier,
             value,
-            end,
             ..
         }) = &input.contents[0]
         {
@@ -131,8 +128,6 @@ fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> 
                 value.clone(),
                 Box::new(parse_as_expression(TokenGroup {
                     delimiter: None,
-                    start: Some(*end),
-                    end: input.start,
                     contents: vec![input.contents[1].clone()],
                 })?),
             ));
@@ -193,7 +188,7 @@ fn parse_as_number(input: &TokenGroup) -> errors::CellTailResult<isize> {
     } else {
         Err(errors::CellTailError::new(
             input,
-            "Empty or too long number literal".to_owned(),
+            format!("Empty or too long number literal: {:?}", input.contents),
         ))
     }
 }
@@ -234,14 +229,48 @@ fn parse_single_attribute(
                     _ => Err(errors::CellTailError::new(&value, "Invalid value for input mode, expected one of 'STDIN', 'CMD'".to_owned()))
                 }
             } else {
-                Err(errors::CellTailError::new(&value, "Invalid attribute value".to_owned()))
+                if let Ok(number) = parse_as_number(&value) {
+                    Ok(attrs.input_mode = attributes::InputSource::Constant(vec![number]))
+                } else {
+                    Err(errors::CellTailError::new(&value, "Invalid attribute value for attribute \"input\", expected 2 words or a comma seperated list of numbers".to_owned()))
+                }
             }
         }
         "O" | "Output" => {
-            Ok(())
+            if value.contents.len() != 1 {
+                return Err(errors::CellTailError::new(&value, "Invalid length for property \"output\"".to_owned()))
+            }
+
+            match &value.contents[0] {
+                LexerToken::BasicToken(Token {
+                    kind: TokenKind::Identifier,
+                    value: val,
+                    ..
+                }) => {
+                   match val.to_lowercase().as_str() {
+                        "c" | "chars" | "characters"  => Ok(attrs.output_mode = attributes::IOFormat::Characters),
+                        "n" | "d" | "numbers" | "decimal" => Ok(attrs.output_mode = attributes::IOFormat::Numbers),
+                        _ => Err(errors::CellTailError::new(&value, "Invalid output mode, must be one of \"characters\" or \"numbers\"".to_owned()))
+                    }
+                }
+                _ => Err(errors::CellTailError::new(&value, "Invalid type for property \"output\", note: must be token, no parenthesis allowed here".to_owned()))
+            }
         }
         "D" | "Debug" => {
-            Ok(())
+            match &value.contents[0] {
+                LexerToken::BasicToken(Token {
+                    kind: TokenKind::Identifier,
+                    value: val,
+                    ..
+                }) => {
+                   match val.to_lowercase().as_str() {
+                        "t" | "y" | "true" | "yes"  => Ok(attrs.debug = true),
+                        "n" | "f" | "no" | "false" => Ok(attrs.debug = false),
+                        _ => Err(errors::CellTailError::new(&value, "Invalid debug mode, must be one of \"characters\" or \"numbers\"".to_owned()))
+                    }
+                }
+                _ => Err(errors::CellTailError::new(&value, "Invalid type for property \"debug\", note: must be token, no parenthesis allowed here".to_owned()))
+            }
         }
         m => {
             Err(errors::CellTailError::new(&value, format!("Unexpected property name {}, expected one of 'Input', 'I', 'Output', 'O', 'Debug', 'D'", m)))
@@ -253,7 +282,7 @@ fn parse_attribute(
     input: TokenGroup,
     attributes: &mut attributes::Attributes,
 ) -> errors::CellTailResult<()> {
-    if let Some((name, op, value)) = input.split_first(TokenKind::Equals) {
+    if let Some((name, _, value)) = input.split_first(TokenKind::Equals) {
         if name.contents.len() != 1 {
             Err(errors::CellTailError::new(
                 &name,
@@ -343,7 +372,11 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
     let mut out = Program::new();
     for statement in input.contents {
         if let LexerToken::Group(group) = statement {
-            if let Some((pattern, _operator, expression)) = group.split_first(TokenKind::Colon) {
+            if group.contains(TokenKind::Equals) {
+                parse_attribute(group, &mut out.attributes)?;
+            } else if let Some((pattern, _operator, expression)) =
+                group.split_first(TokenKind::Colon)
+            {
                 if let LexerToken::BasicToken(
                     t @ Token {
                         kind: TokenKind::Identifier,
@@ -372,8 +405,6 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                                 parse_as_pattern(TokenGroup {
                                     delimiter: None,
                                     contents: pattern.contents[1..].to_vec(),
-                                    start: Some(t.end),
-                                    end: group.end,
                                 })?,
                                 parse_as_expression(expression)?,
                             ),

@@ -70,7 +70,7 @@ pub fn interpret(program: parser::Program, input: Vec<u8>) -> errors::CellTailRe
                         modified = true;
                     }
 
-                    if if (index + cell_offset == 0) {
+                    if if index + cell_offset == 0 {
                         &Literal::Null
                     } else {
                         &next_value[index + cell_offset - 1].value_from_right

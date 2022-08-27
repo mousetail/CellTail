@@ -1,12 +1,10 @@
-use crate::errors::{self, SourceCodePosition};
+use crate::errors;
 use crate::tokenizer::{Token, TokenKind};
 
 #[derive(Debug, Clone)]
 pub struct TokenGroup {
     pub delimiter: Option<char>,
     pub contents: Vec<LexerToken>,
-    pub start: Option<usize>,
-    pub end: Option<usize>,
 }
 
 impl TokenGroup {
@@ -30,15 +28,11 @@ impl TokenGroup {
             TokenGroup {
                 delimiter: self.delimiter,
                 contents: self.contents[..index].to_vec(),
-                start: self.start,
-                end: Some(middle_element.start),
             },
             middle_element.clone(),
             TokenGroup {
                 delimiter: self.delimiter,
                 contents: self.contents[index + 1..].to_vec(),
-                start: Some(middle_element.end),
-                end: self.end,
             },
         ))
     }
@@ -53,8 +47,6 @@ impl TokenGroup {
             .map(|b| TokenGroup {
                 delimiter: None,
                 contents: b.to_vec(),
-                start: b.first().and_then(|i| i.get_start()).or(self.start),
-                end: b.last().and_then(|i| i.get_end()).or(self.end),
             })
             .collect();
     }
@@ -69,10 +61,10 @@ impl TokenGroup {
 
 impl errors::SourceCodePosition for TokenGroup {
     fn get_start(&self) -> Option<usize> {
-        self.start
+        self.contents.first().and_then(|i| i.get_start())
     }
     fn get_end(&self) -> Option<usize> {
-        self.end
+        self.contents.last().and_then(|i| i.get_end())
     }
 }
 
@@ -85,13 +77,13 @@ pub enum LexerToken {
 impl errors::SourceCodePosition for LexerToken {
     fn get_start(&self) -> Option<usize> {
         match self {
-            LexerToken::Group(k) => k.start,
+            LexerToken::Group(k) => k.get_start(),
             LexerToken::BasicToken(k) => Some(k.start),
         }
     }
     fn get_end(&self) -> Option<usize> {
         match self {
-            LexerToken::Group(k) => k.end,
+            LexerToken::Group(k) => k.get_end(),
             LexerToken::BasicToken(k) => Some(k.end),
         }
     }
@@ -102,14 +94,10 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
         TokenGroup {
             delimiter: None,
             contents: vec![],
-            start: Some(0),
-            end: input.last().and_then(|i| Some(i.end)),
         },
         TokenGroup {
             delimiter: Some(';'),
             contents: vec![],
-            start: Some(0),
-            end: input.last().and_then(|i| Some(i.end)),
         },
     ];
 
@@ -117,24 +105,19 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
         match token {
             Token {
                 kind: TokenKind::OpeningBracket(character),
-                start,
                 ..
             } => stack.push(TokenGroup {
                 delimiter: Some(character),
                 contents: vec![],
-                start: Some(start),
-                end: None,
             }),
             Token {
                 kind: TokenKind::Semicolon,
-                start,
                 ..
             } => {
-                let mut last_stack_value = stack.pop().expect("Unmatched closing bracket (type 6)");
+                let last_stack_value = stack.pop().expect("Unmatched closing bracket (type 6)");
                 if last_stack_value.delimiter != Some(';') {
                     panic!("Unexpected ;, expected a {:?}, you may be missing a closing bracket (type 7)", last_stack_value.delimiter)
                 }
-                last_stack_value.end = Some(start);
                 stack
                     .last_mut()
                     .expect("Unmatched closing bracket (type 8)")
@@ -143,8 +126,6 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
                 stack.push(TokenGroup {
                     delimiter: Some(';'),
                     contents: vec![],
-                    start: Some(start),
-                    end: None,
                 });
             }
             Token {
@@ -153,11 +134,9 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
             } => (),
             Token {
                 kind: TokenKind::ClosingBracket(character),
-                start,
                 ..
             } => {
-                let mut last_stack_value = stack.pop().expect("Unmatched closing bracket (type 3)");
-                last_stack_value.end = Some(start);
+                let last_stack_value = stack.pop().expect("Unmatched closing bracket (type 3)");
                 if last_stack_value.delimiter == None || last_stack_value.delimiter == Some(';') {
                     panic!(
                         "Expected a closing bracket to match {:?} but got {character}",

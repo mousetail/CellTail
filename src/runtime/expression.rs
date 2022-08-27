@@ -110,7 +110,7 @@ impl UnaryOperator {
         }
     }
 
-    fn array_reverse(tuple: Vec<Literal>) -> Literal {
+    fn array_reverse(_tuple: Vec<Literal>) -> Literal {
         todo!()
     }
 }
