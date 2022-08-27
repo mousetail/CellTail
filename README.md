@@ -98,6 +98,29 @@ Debug = False # Do not print intermediate states
 Debug = True # Print intermediate states
 ```
 
+# Functions
+
+Functions allow you to resuse expressions. They are also the only way to create something akin to a IF statement inside of a rule. A function is defined with the `fn` keyword:
+
+```
+fn bob x: x+1
+(z, bob z, bob (bob z)): z, bob z, z
+```
+
+Every function takes exactly 1 argument. However, that argument may itself be a tuple containing multiple arguments.
+
+You can define a function with the same name and they work like patterns: The first one that matches will be called.
+
+```
+fn div x,0: 1
+fn div x,y: x/y
+
+a,b,(c,d): a,div(b,c),N
+a,b,c: a,div(b,0),N
+```
+
+Functions may not call other functions, except built in functions when they are implemented.
+
 # Example Programs
 
 ## Hello World
