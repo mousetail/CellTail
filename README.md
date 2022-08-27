@@ -121,6 +121,8 @@ a,b,c: a,div(b,0),N
 
 Functions may not call other functions, except built in functions when they are implemented.
 
+If you call a function but no pattern matches, a warning is printed and `Null` is returned.
+
 # Example Programs
 
 ## Hello World
