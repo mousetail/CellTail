@@ -96,6 +96,7 @@ There are 2 values:
 ```
 Debug = False # Do not print intermediate states
 Debug = True # Print intermediate states
+```
 
 # Example Programs
 
