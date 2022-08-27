@@ -64,6 +64,39 @@ a+1,a+2,a+3:0,2,2; # Variable never defined raw
 a+3,a+1,a:0,1,3; # Variable is used in a expression before being defined raw.
 ```
 
+# Modifiers
+
+Special attribibutes can be set to modify how the program works:
+
+## Input Mode
+
+```
+Input = Input Numbers; # Take a list of comma seperated numbers from STDIN
+Input = Input Characters; # Take characters as input from STDIN, each byte will become a number of its'byte value
+Input = CMD Numbers; # Take a list of comma seperated numbers as a single command line argument
+Input = CMD Characters # Take a string from command line arguments as input, with each byte becoming one number
+Input = 5,12,-5 # take no input, initialize with the values 5,12,-5
+```
+
+You may also abbreviate each to only it's first character.
+
+## Output Mode
+
+There are 2 available output modes:
+
+```
+Output = Characters # Attemptt to convert the output to character values, substituting ? for any numbers out of range
+Output = Numbers # Output as , seperated numbers
+```
+
+# Debug Mode
+
+There are 2 values:
+
+```
+Debug = False # Do not print intermediate states
+Debug = True # Print intermediate states
+
 # Example Programs
 
 ## Hello World
@@ -97,18 +130,24 @@ Counts down from the given letter down to A.
 This one is untested, the interpreter doesn't support all required features yet.
 
 ```
-#f=-1
-N,-1,N :                        N,(1,1,1),N;
+I=-1; # Start with the special value -1
+D=false; # Debug = False
+O=N; # Output as numbers
+N,-1,N :                        N,(1,1,1),N; # Initial value: 0, 0, 0
 # Recursing base case to prevent infinite loop
-14, N,N:                        N,N,N;
+174, N,N:                        N,N,N;
 
 # number, factor, modulo
-A, (number, factor, 0), N:      N, (number + 1), N;
-# Found a prime
-A, (number, number, modulo):    N, number, number + 1;
+
+# Found a prime, number equals factor
+A, (number, number, modulo), N:    N, number, number + 1;
+
+# Modulo is 0, so it's not a prime
+A, (number, factor, 0), N:      N, (number + 1, 2), N;
+
 # Did not find a prime or 0 factor
 A, (number, factor), N:         N, (number, factor, number%factor), N;
-A, (number, factor, modulo), N: N, (number, factor+1, number%factor+1), N;
+A, (number, factor, modulo), N: N, (number, factor+1, number%(factor+1)), N;
 # First Step
 number, N, N:                   N, (number, 1, number), N;
 ```
