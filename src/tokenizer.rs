@@ -70,6 +70,25 @@ pub fn tokenize(input: &Vec<char>) -> errors::CellTailResult<Vec<Token>> {
                 |v: char| v.is_numeric(),
                 TokenKind::Number,
             )),
+            '\'' => {
+                if input[counter + 2] != '\'' {
+                    Err(errors::CellTailError::new(
+                        &errors::RangeError(counter, counter + 3),
+                        format!(
+                            "Character literal must end in a single quote ', got {:?}",
+                            input[counter + 2]
+                        ),
+                    ))?
+                }
+                result.push(Token {
+                    kind: TokenKind::Number,
+                    value: format!("{}", input[counter + 1] as u8),
+                    start: counter,
+                    end: counter + 3,
+                });
+
+                counter += 3
+            }
             '"' => {
                 counter += 1;
                 result.push(match_rest(

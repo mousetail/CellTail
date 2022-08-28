@@ -130,6 +130,7 @@ If you call a function but no pattern matches, a warning is printed and `Null` i
 Takes P as input
 
 ```
+I='p';
 N,80,N:N,N,(104, (101, (108, (108, (111, (32, (119, (111, (114, (108, (100, N)))))))))));
 (p,q),N,N:N,p,q;
 ```
@@ -137,8 +138,14 @@ N,80,N:N,N,(104, (101, (108, (108, (111, (32, (119, (111, (114, (108, (100, N)))
 Alternatively:
 
 ```
+I='p';
 N,80,N:N,N,"hello world";
 (p,q),N,N:N,p,q;
+```
+
+Alternatively
+```
+I="Hello world";
 ```
 
 ## Countdown

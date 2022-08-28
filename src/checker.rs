@@ -59,7 +59,7 @@ fn check_expression(
                 }
             }
         }
-        .and_then(|b| check_expression(arguments, variables, mode)),
+        .and_then(|_| check_expression(arguments, variables, mode)),
         expression::Expression::Variable(var) => {
             if var == "N" {
                 Ok(())
