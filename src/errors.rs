@@ -104,7 +104,7 @@ impl CellTailError {
             (Some((line_number, line_start)), None) => LinePosition {
                 line_number: *line_number,
                 column_number: position - line_start,
-                line_start: *line_start,
+                line_start: *line_start + 1,
                 line_end: source.len(),
             },
             (None, Some((_line_end_number, line_end))) => LinePosition {
@@ -117,7 +117,7 @@ impl CellTailError {
                 LinePosition {
                     line_number: *line_number,
                     column_number: position - line_start,
-                    line_start: *line_start,
+                    line_start: *line_start + 1,
                     line_end: *line_end,
                 }
             }
@@ -133,11 +133,11 @@ impl CellTailError {
     ) {
         Self::set_color(33);
         eprintln!(
-            " {}",
+            "> \t{}",
             source[line_start..line_end].iter().collect::<String>()
         );
         eprintln!(
-            " {}{}",
+            "> \t{}{}",
             " ".repeat(error_start),
             "^".repeat(error_end - error_start)
         );
@@ -178,13 +178,17 @@ impl CellTailError {
 
         if let (Some(start_pos), Some(end_pos)) = (self.start, self.end) {
             let line_info = Self::get_line_number(&source, start_pos);
+            let line_end_info = Self::get_line_number(&source, end_pos);
 
             eprintln!(
-                "Line {} Column {}:",
-                line_info.line_number, line_info.column_number
+                "Line {} Column {} (pos {start_pos}) to line {} column {} (pos: {end_pos}):",
+                line_info.line_number,
+                line_info.column_number,
+                line_end_info.line_number,
+                line_end_info.column_number,
             );
 
-            Self::highlight_error(&source, line_info, Self::get_line_number(&source, end_pos));
+            Self::highlight_error(&source, line_info, line_end_info);
         } else if let Some(pos) = self.start.or(self.end) {
             let line_info = Self::get_line_number(&source, pos);
 

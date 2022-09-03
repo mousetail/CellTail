@@ -334,6 +334,11 @@ fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
             }) if v == "N" => Pattern::Literal(Literal::Null),
             LexerToken::BasicToken(Token {
                 kind: TokenKind::Identifier,
+                value: v,
+                ..
+            }) if v == "_" => Pattern::Any,
+            LexerToken::BasicToken(Token {
+                kind: TokenKind::Identifier,
                 value,
                 ..
             }) => Pattern::Identifier(value.clone()),
