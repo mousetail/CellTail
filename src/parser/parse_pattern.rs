@@ -73,6 +73,28 @@ pub(super) fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Patt
         ));
     }
 
+    if input.contains(TokenKind::Elipsis) {
+        if let Some((part_a, _op, part_b)) = input.split_first(TokenKind::Elipsis) {
+            return Ok(Pattern::Range(
+                if part_a.contents.is_empty() {
+                    None
+                } else {
+                    Some(Box::new(parse_expression::parse_as_expression(part_a)?))
+                },
+                if part_b.contents.is_empty() {
+                    None
+                } else {
+                    Some(Box::new(parse_expression::parse_as_expression(part_b)?))
+                },
+            ));
+        } else {
+            Err(errors::CellTailError::new(
+                &input,
+                format!("Invalid range pattern"),
+            ))?;
+        }
+    }
+
     Ok(Pattern::Expression(parse_expression::parse_as_expression(
         input,
     )?))

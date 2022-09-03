@@ -74,10 +74,12 @@ fn interpret_iteration(cells: &Vec<Cell>, program: &parser::Program) -> Vec<Cell
 
 fn print_cells(cells: &Vec<Cell>) {
     for cell in cells {
-        print!(
-            "(L={} M={} R={})\t",
-            cell.value_from_left, cell.value_from_top, cell.value_from_right
-        );
+        if cell.value_from_top != Literal::Null {
+            print!(
+                "({:0>4}, {:0>4}, {:0>4}) ",
+                cell.value_from_left, cell.value_from_top, cell.value_from_right
+            );
+        }
     }
     println!();
 }

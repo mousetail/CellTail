@@ -43,11 +43,11 @@ You can use the `+` operator to concatenate 2 lists.
 
 ## Numbers
 
-A number represents any integer. There are no floating point numbers. All the basic operators are available, including `+`, `-`, `*`, `/`, `&`, `|`, `^`.
+A number represents any integer. There are no floating point numbers. All the basic operators are available, including `+`, `-`, `*`, `/`, `^`.
 
 When writing matching expressions for numbers, you can use `5..` for example to match nubmers over 5, of `8..10` for numbers 8 and 9.
 
-# Rules
+# Patterns
 
 Each rule starts with a matching expression then a `:` then the resulting value. The matching expression will be a 3 tuple containing the element from the left, center, and right, then returns a 3 tuple for values passed in each direction.
 
@@ -63,6 +63,49 @@ Would match 3 increasing numbers. However, the variable must appear in the "raw"
 a+1,a+2,a+3:0,2,2; # Variable never defined raw
 a+3,a+1,a:0,1,3; # Variable is used in a expression before being defined raw.
 ```
+
+## Ranges
+
+You can use the `..` operator to check if a value is in a range, for example:
+
+```
+7..12
+```
+
+Means that the value must be between 8 and 11. Ranges are always exclusive on both sides. If you want a inclusive range you can use `7|7..12` for example.
+
+Numbers compare lower than literals which compare lower than tuples. So to check if a value is a number you can use:
+
+```
+N..()
+```
+
+Or the more common case where you just want to check not null:
+
+```
+N..
+```
+
+Tuples are compared lexicographically.
+
+## Combining Operators
+
+The `&` and `|` operators can be used to combine different patterns. For example, this rule:
+
+```
+(N,_,_)|(_,_,N):N,N,N
+```
+Will match values bounded on either side by NULL.
+
+The `&` operator is useful for binding variables as well as checking some condition. For example, this checks if a value falls into a range and binds it to a:
+
+```
+..7&a
+```
+
+(This works similarly to the `@` operator in rust except there is no limit to the number of variables you can bind)
+
+All options for the `|` operator must bind the same variables. Otherwise some variables could be un
 
 # Modifiers
 
@@ -183,4 +226,19 @@ A, (number, factor), N:         N, (number, factor, number%factor), N;
 A, (number, factor, modulo), N: N, (number, factor+1, number%(factor+1)), N;
 # First Step
 number, N, N:                   N, (number, 1, number), N;
+```
+
+# Sorting a list
+
+```
+I=9,1,3,2,1,5,13,883,7,-1,14,8,999,15,4,17;
+O=N;
+D=T;
+
+N,u,N:u,u,u;
+(N,N,_)|(_,N,N):N,N,N;
+u,v&..u,w&..v&N..:w,(v,v),u;
+_,(v,v),_:v,v,v;
+u,..u,_:u,u,u;
+_,a,..a&c&N..:c,c,c;
 ```

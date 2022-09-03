@@ -67,6 +67,13 @@ fn check_pattern(
 
             Ok(())
         }
+        pattern::Pattern::Range(ab, bc) => ab
+            .clone()
+            .map_or(Ok(()), |k| check_expression(&k, variables, mode))
+            .and_then(|_| {
+                bc.clone()
+                    .map_or(Ok(()), |k| check_expression(&k, variables, mode))
+            }),
     }
 }
 
@@ -134,14 +141,6 @@ pub fn check_program(program: &parser::Program) -> errors::CellTailResult<()> {
                     ),
                 ))?
             }
-        } else {
-            Err(errors::CellTailError::new(
-                &errors::UnkownLocationError,
-                format!(
-                    "One rule is not a tuple that matches exactly 3 elements, but matches {:?}",
-                    rule.0
-                ),
-            ))?
         }
 
         check_pattern(

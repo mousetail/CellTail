@@ -13,6 +13,7 @@ pub enum TokenKind {
     Semicolon,
     Comment,
     Equals,
+    Elipsis,
 }
 
 #[derive(Debug, Clone)]
@@ -164,6 +165,21 @@ pub fn tokenize(input: &Vec<char>) -> errors::CellTailResult<Vec<Token>> {
                     value: [input[counter]].iter().collect(),
                 });
                 counter += 1
+            }
+            '.' => {
+                if input[counter + 1] != '.' {
+                    Err(errors::CellTailError::new(
+                        &errors::PointError(counter),
+                        format!("Range expected 2 .., found 1"),
+                    ))?
+                }
+                result.push(Token {
+                    kind: TokenKind::Elipsis,
+                    start: counter,
+                    end: counter + 2,
+                    value: "..".to_owned(),
+                });
+                counter += 2
             }
             token => {
                 return Err(errors::CellTailError::new(

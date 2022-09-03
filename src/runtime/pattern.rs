@@ -11,6 +11,7 @@ pub enum Pattern {
     Expression(Expression),
     And(Vec<Pattern>),
     Or(Vec<Pattern>),
+    Range(Option<Box<Expression>>, Option<Box<Expression>>),
 }
 
 impl Pattern {
@@ -61,6 +62,21 @@ impl Pattern {
                     }
                 }
                 return false;
+            }
+            Pattern::Range(ba, be) => {
+                let first_part = if let Some(expr) = ba {
+                    &expr.evaluate(variables, &HashMap::new()) < value
+                } else {
+                    true
+                };
+
+                let second_part = if let Some(expr) = be {
+                    value < &expr.evaluate(variables, &HashMap::new())
+                } else {
+                    true
+                };
+
+                return first_part && second_part;
             }
             Pattern::Any => true,
         }

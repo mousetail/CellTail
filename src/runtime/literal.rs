@@ -1,10 +1,10 @@
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Ord, PartialOrd, Eq)]
 pub enum Literal {
+    Null,
     Number(isize),
     Tuple(Vec<Literal>),
-    Null,
 }
 
 impl Literal {
