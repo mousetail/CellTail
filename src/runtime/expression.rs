@@ -8,8 +8,8 @@ pub enum BinaryOperator {
     Subtract,
     Multiply,
     Divide,
-    And,
-    Or,
+    // And,
+    // Or,
     Xor,
     Mod,
 }
@@ -25,8 +25,8 @@ impl BinaryOperator {
                     BinaryOperator::Subtract => Literal::Number(Self::apply_sub(n, n2)),
                     BinaryOperator::Multiply => Literal::Number(Self::apply_mul(n, n2)),
                     BinaryOperator::Divide => Self::apply_div(n, n2),
-                    BinaryOperator::And => Literal::Number(Self::apply_and(n, n2)),
-                    BinaryOperator::Or => Literal::Number(Self::apply_or(n, n2)),
+                    // BinaryOperator::And => Literal::Number(Self::apply_and(n, n2)),
+                    // BinaryOperator::Or => Literal::Number(Self::apply_or(n, n2)),
                     BinaryOperator::Xor => Literal::Number(Self::apply_xor(n, n2)),
                     BinaryOperator::Mod => Self::apply_mod(n, n2),
                 },
@@ -70,13 +70,13 @@ impl BinaryOperator {
         }
     }
 
-    fn apply_and(op1: isize, op2: isize) -> isize {
-        op1 & op2
-    }
+    // fn apply_and(op1: isize, op2: isize) -> isize {
+    //     op1 & op2
+    // }
 
-    fn apply_or(op1: isize, op2: isize) -> isize {
-        op1 | op2
-    }
+    // fn apply_or(op1: isize, op2: isize) -> isize {
+    //     op1 | op2
+    // }
     fn apply_xor(op1: isize, op2: isize) -> isize {
         op1 ^ op2
     }
