@@ -2,6 +2,7 @@ use crate::errors;
 use crate::parser;
 use crate::runtime::expression;
 use crate::runtime::pattern;
+use std::collections::HashSet;
 
 #[derive(Copy, Clone)]
 enum CheckerMode<'a> {
@@ -12,11 +13,14 @@ enum CheckerMode<'a> {
 fn check_pattern(
     pat: &pattern::Pattern,
     mode: CheckerMode,
-    variables: &mut Vec<String>,
+    variables: &mut HashSet<String>,
 ) -> errors::CellTailResult<()> {
     match pat {
         pattern::Pattern::Any => Ok(()),
-        pattern::Pattern::Identifier(val) => Ok(variables.push(val.clone())),
+        pattern::Pattern::Identifier(val) => {
+            variables.insert(val.clone());
+            Ok(())
+        }
         pattern::Pattern::Literal(_) => Ok(()),
         pattern::Pattern::Expression(expr) => check_expression(expr, variables, mode),
         pattern::Pattern::Tuple(tup) => {
@@ -26,17 +30,49 @@ fn check_pattern(
             Ok(())
         }
         pattern::Pattern::And(tup) => {
-            todo!()
+            for i in tup {
+                check_pattern(i, mode, variables)?
+            }
+            Ok(())
         }
         pattern::Pattern::Or(tup) => {
-            todo!()
+            let all_equal = tup
+                .iter()
+                .map(|b| {
+                    let mut variables_clone = variables.clone();
+                    match check_pattern(b, mode, &mut variables_clone) {
+                        Ok(_) => Ok(variables_clone),
+                        Err(e) => Err(e),
+                    }
+                })
+                .reduce(|a, b| match (a, b) {
+                    (Err(a), _) | (_, Err(a)) => Err(a),
+                    (Ok(u), Ok(v)) => {
+                        if u == v {
+                            Ok(u)
+                        } else {
+                            Err(errors::CellTailError::new(
+                                &errors::UnkownLocationError,
+                                format!("Parts of OR expression define different variables"),
+                            ))
+                        }
+                    }
+                })
+                .unwrap_or(Err(errors::CellTailError::new(
+                    &errors::UnkownLocationError,
+                    format!("Empty OR statement"),
+                )))?;
+
+            *variables = all_equal;
+
+            Ok(())
         }
     }
 }
 
 fn check_expression(
     expr: &expression::Expression,
-    variables: &Vec<String>,
+    variables: &HashSet<String>,
     mode: CheckerMode,
 ) -> errors::CellTailResult<()> {
     match expr {
@@ -85,7 +121,7 @@ pub fn check_program(program: &parser::Program) -> errors::CellTailResult<()> {
     let function_names: Vec<_> = program.functions.iter().map(|i| i.0.clone()).collect();
 
     for rule in &program.rules.0 {
-        let mut vars = vec![];
+        let mut vars = HashSet::new();
 
         if let pattern::Pattern::Tuple(a) = &rule.0 {
             if a.len() != 3 {
@@ -126,7 +162,7 @@ pub fn check_program(program: &parser::Program) -> errors::CellTailResult<()> {
 
     for function in &program.functions {
         for rule in &function.1 .0 {
-            let mut vars = vec![];
+            let mut vars = HashSet::new();
             check_pattern(&rule.0, CheckerMode::Function, &mut vars)?;
             check_expression(&rule.1, &vars, CheckerMode::Function)?
         }

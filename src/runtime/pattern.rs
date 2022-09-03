@@ -51,11 +51,16 @@ impl Pattern {
                 let new_value = expr.evaluate(variables, &HashMap::new());
                 &new_value == value
             }
-            Pattern::And(parts) => {
-                todo!();
-            }
+            Pattern::And(parts) => return parts.iter().all(|i| i.match_dict(value, variables)),
             Pattern::Or(parts) => {
-                todo!();
+                for part in parts {
+                    let mut copy = variables.clone();
+                    if part.match_dict(value, &mut copy) {
+                        *variables = copy;
+                        return true;
+                    }
+                }
+                return false;
             }
             Pattern::Any => true,
         }
