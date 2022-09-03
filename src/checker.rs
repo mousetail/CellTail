@@ -25,6 +25,12 @@ fn check_pattern(
             }
             Ok(())
         }
+        pattern::Pattern::And(tup) => {
+            todo!()
+        }
+        pattern::Pattern::Or(tup) => {
+            todo!()
+        }
     }
 }
 

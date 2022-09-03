@@ -53,6 +53,26 @@ pub(super) fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Patt
         ));
     }
 
+    if input.contains(TokenKind::Operator('&')) {
+        return Ok(Pattern::And(
+            input
+                .split_all(TokenKind::Operator('&'))
+                .into_iter()
+                .map(|i| parse_as_pattern(i))
+                .collect::<errors::CellTailResult<Vec<Pattern>>>()?,
+        ));
+    }
+
+    if input.contains(TokenKind::Operator('|')) {
+        return Ok(Pattern::Or(
+            input
+                .split_all(TokenKind::Operator('|'))
+                .into_iter()
+                .map(|i| parse_as_pattern(i))
+                .collect::<errors::CellTailResult<Vec<Pattern>>>()?,
+        ));
+    }
+
     Ok(Pattern::Expression(parse_expression::parse_as_expression(
         input,
     )?))

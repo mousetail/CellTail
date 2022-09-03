@@ -14,6 +14,7 @@ impl PatternList {
     ) -> Option<Literal> {
         for (pattern, expression) in &self.0 {
             if let Some(caputred_variables) = (pattern).matches(&literal) {
+                // println!("Matched rule {index}");
                 return Some(expression.evaluate(&caputred_variables, functions));
             }
         }

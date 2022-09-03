@@ -9,65 +9,65 @@ pub enum Pattern {
     Any,
     Tuple(Vec<Pattern>),
     Expression(Expression),
+    And(Vec<Pattern>),
+    Or(Vec<Pattern>),
 }
 
 impl Pattern {
-    pub fn matches(&self, value: &Literal) -> Option<HashMap<String, Literal>> {
+    pub fn match_dict(&self, value: &Literal, variables: &mut HashMap<String, Literal>) -> bool {
         match self {
             Pattern::Literal(lit) => {
                 if lit == value {
-                    Some(HashMap::new())
+                    true
                 } else {
                     //println!("No match: literals {:?} and {:?} don't match", lit, value);
-                    None
+                    false
                 }
             }
             Pattern::Identifier(ident) => {
-                let mut out = HashMap::new();
-                out.insert(ident.clone(), value.clone());
-                Some(out)
+                if variables.contains_key(ident) {
+                    variables.get(ident) == Some(value)
+                } else {
+                    variables.insert(ident.clone(), value.clone());
+                    true
+                }
             }
             Pattern::Tuple(tup1) => {
                 if let Literal::Tuple(tup2) = value {
                     if tup2.len() != tup1.len() {
                         //println!("No match: length is different {:?} vs {:?}", tup2, tup1);
-                        return None;
+                        false
+                    } else {
+                        tup1.iter()
+                            .zip(tup2)
+                            .all(|(pat, val)| pat.match_dict(val, variables))
                     }
-                    let mut out = HashMap::new();
-                    for (pat1, val1) in tup1.iter().zip(tup2) {
-                        if let Some(vars) = pat1.matches(val1) {
-                            for var in vars {
-                                if let Some(previous_value) = out.get(&var.0) {
-                                    if previous_value != &var.1 {
-                                        //println!("Tuple doesn't match vars");
-                                        return None;
-                                    }
-                                } else {
-                                    out.insert(var.0, var.1);
-                                }
-                            }
-                        } else {
-                            //println!("Contents doesn't match");
-                            return None;
-                        }
-                    }
-
-                    Some(out)
                 } else {
                     // println!("Matching tuple with non tuple");
-                    None
+                    false
                 }
             }
             Pattern::Expression(expr) => {
-                let new_value = expr.evaluate(&HashMap::new(), &HashMap::new());
-                if &new_value == value {
-                    Some(HashMap::new())
-                } else {
-                    //println!("Expression doesn't match");
-                    None
-                }
+                let new_value = expr.evaluate(variables, &HashMap::new());
+                &new_value == value
             }
-            Pattern::Any => Some(HashMap::new()),
+            Pattern::And(parts) => {
+                todo!();
+            }
+            Pattern::Or(parts) => {
+                todo!();
+            }
+            Pattern::Any => true,
+        }
+    }
+
+    pub fn matches(&self, value: &Literal) -> Option<HashMap<String, Literal>> {
+        let mut result = HashMap::new();
+
+        if self.match_dict(value, &mut result) {
+            Some(result)
+        } else {
+            None
         }
     }
 }
