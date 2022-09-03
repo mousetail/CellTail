@@ -193,8 +193,10 @@ I="Hello world";
 
 ## Countdown
 
+Takes a letter as input, counts down to A
+
 ```
-65,N,N:N,N,N;
+'A',N,N:N,N,N;
 N,L,N:N,N,L;
 A,N,N:N,A,A-1;
 ```
@@ -202,8 +204,6 @@ A,N,N:N,A,A-1;
 Counts down from the given letter down to A.
 
 ## Primes
-
-This one is untested, the interpreter doesn't support all required features yet.
 
 ```
 I=-1; # Start with the special value -1
@@ -228,7 +228,7 @@ A, (number, factor, modulo), N: N, (number, factor+1, number%(factor+1)), N;
 number, N, N:                   N, (number, 1, number), N;
 ```
 
-# Sorting a list
+## Sorting a list
 
 ```
 I=9,1,3,2,1,5,13,883,7,-1,14,8,999,15,4,17;
