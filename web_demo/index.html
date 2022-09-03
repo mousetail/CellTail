@@ -1,22 +1,87 @@
+<!DOCTYPE html>
 <html>
+<meta charset="utf-8">
 <head>
+<style>
+body {
+    font-family: sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+textarea {
+    width: calc(100% - 1rem);
+    border: 1px solid grey;
+    margin: 0.5rem;
+}
+
+#output {
+    width: calc(100% - 1rem);
+    border: 1px solid grey;
+    min-height: 20rem;
+    margin: 0.5rem;
+}
+
+button {
+    width: calc(100% - 1rem);
+    border-radius: 0;
+    background: white;
+    border: 1px solid black;
+    margin: 0.5rem;
+    padding: 0.5rem;
+}
+
+button:hover {
+    background: black;
+    color: white;
+}
+</style>
 </head>
 <body>
+
+<h2>Code</h2>
+<textarea id="code"></textarea>
+<h2>Input</h2>
+<textarea id="input"></textarea>
+<br>
+<button id="run">Run</button>
+<h2>Output</h2>
+<div class="output">
+<button>Clear</button><br>
+<pre readonly id="output"></pre>
+
 <script type="module">
 import init, { wasm_parse_run_code } from "../wasm_build/cell_tail.js";
 
+
+let output = document.getElementById('output');
 window.handle_output = function(val) {
-    console.log(val);
+    let span = document.createElement('span');
+    span.textContent = val;
+    output.appendChild(span);
 }
 
 window.handle_error = function(val) {
-    console.error(val);
+    let span = document.createElement('span');
+    span.textContent = val;
+    span.style.color = 'red';
+    output.appendChild(span);
 }
 
 let start_page = async ()=> {
     await init();
-    console.log(wasm_parse_run_code("I='h', 'e';", "er was eens"))
 }
+
+document.getElementById('run').addEventListener('click',
+    ()=>{
+        console.log("running", wasm_parse_run_code(
+        document.getElementById('code').value,
+        document.getElementById('input').value
+    ))
+    }
+)
 
 start_page();
 </script>

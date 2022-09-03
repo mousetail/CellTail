@@ -151,9 +151,10 @@ fn get_contents(data: &str, format: &attributes::IOFormat) -> errors::CellTailRe
     }
 }
 
-pub fn run_program(
+pub fn run_program<T: std::io::Write>(
     program: parser::Program,
     command_line_arguments: Vec<String>,
+    output: &mut T,
 ) -> errors::CellTailResult<()> {
     let input = match &program.attributes.input_mode {
         attributes::InputSource::Arg(m) => {
@@ -179,30 +180,30 @@ pub fn run_program(
     let result = interpret(&program, input)?;
 
     match &program.attributes.output_mode {
-        attributes::IOFormat::Characters => {
-            print!(
-                "{}",
-                result
-                    .iter()
-                    .map(|i| match i {
-                        Some(i @ 0..=256) => *i as u8 as char,
-                        _ => '?',
-                    })
-                    .collect::<String>()
-            )
-        }
-        attributes::IOFormat::Numbers => {
-            print!(
-                "{}",
-                result
-                    .iter()
-                    .map(|i| match i {
-                        Some(i) => format!("{}, ", i),
-                        _ => "???, ".to_owned(),
-                    })
-                    .collect::<String>()
-            )
-        }
+        attributes::IOFormat::Characters => write!(
+            output,
+            "{}",
+            result
+                .iter()
+                .map(|i| match i {
+                    Some(i @ 0..=256) => *i as u8 as char,
+                    _ => '?',
+                })
+                .collect::<String>()
+        )
+        .expect("Failed to print output"),
+        attributes::IOFormat::Numbers => write!(
+            output,
+            "{}",
+            result
+                .iter()
+                .map(|i| match i {
+                    Some(i) => format!("{}, ", i),
+                    _ => "???, ".to_owned(),
+                })
+                .collect::<String>()
+        )
+        .expect("Failed to print output"),
     }
 
     Ok(())

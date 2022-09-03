@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::wasm_output::FunctionWriter;
+#[cfg(target_arch = "wasm32")]
 use console_error_panic_hook;
 #[cfg(target_arch = "wasm32")]
 use serde_json::to_string;
@@ -16,8 +18,14 @@ mod lexer;
 mod parser;
 mod runtime;
 mod tokenizer;
+#[cfg(target_arch = "wasm32")]
+mod wasm_output;
 
-fn parse_and_run_code(code: &Vec<char>, input: Vec<String>) -> errors::CellTailResult<()> {
+fn parse_and_run_code<T: std::io::Write>(
+    code: &Vec<char>,
+    input: Vec<String>,
+    output: &mut T,
+) -> errors::CellTailResult<()> {
     let tokens = tokenizer::tokenize(code)?;
     let lexical_tokens = lexer::lex(tokens)?;
     let structure = parser::parse(lexical_tokens)?;
@@ -28,20 +36,19 @@ fn parse_and_run_code(code: &Vec<char>, input: Vec<String>) -> errors::CellTailR
         println!("{:?}", structure);
     }
 
-    interpreter::run_program(structure, input)
+    interpreter::run_program(structure, input, output)
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn wasm_parse_run_code(code: &str, input: &str) -> String {
-    handle_output("bye");
-    handle_error("hello");
-
-    to_string(&parse_and_run_code(
+    parse_and_run_code(
         &code.chars().collect(),
         vec![input.to_owned()],
-    ))
-    .unwrap()
+        &mut wasm_output::FunctionWriter::create_stdout(),
+    );
+
+    "".to_string()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -50,16 +57,13 @@ fn main() {
     let contents = fs::read_to_string(filename).expect("Couldn't read the file");
     let contents_chars = contents.chars().collect::<Vec<char>>();
 
-    if let Err(b) = parse_and_run_code(&contents_chars, env::args().skip(2).collect()) {
+    if let Err(b) = parse_and_run_code(
+        &contents_chars,
+        env::args().skip(2).collect(),
+        &mut std::io::stdout(),
+    ) {
         b.print(contents_chars);
     }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-extern "C" {
-    fn handle_output(value: &str);
-    fn handle_error(value: &str);
 }
 
 #[cfg(target_arch = "wasm32")]
