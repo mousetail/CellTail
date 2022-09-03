@@ -1,0 +1,26 @@
+<html>
+<head>
+</head>
+<body>
+<script type="module">
+import init, { wasm_parse_run_code } from "../wasm_build/cell_tail.js";
+
+window.handle_output = function(val) {
+    console.log(val);
+}
+
+window.handle_error = function(val) {
+    console.error(val);
+}
+
+let start_page = async ()=> {
+    await init();
+    console.log(wasm_parse_run_code("I='h', 'e';", "er was eens"))
+}
+
+start_page();
+</script>
+
+<script>
+</script>
+</body>

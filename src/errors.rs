@@ -1,4 +1,5 @@
 use atty::Stream;
+use serde::Serialize;
 
 pub trait SourceCodePosition {
     fn get_start(&self) -> Option<usize>;
@@ -39,6 +40,7 @@ impl SourceCodePosition for UnkownLocationError {
     }
 }
 
+#[derive(Debug, Serialize)]
 pub struct CellTailError {
     start: Option<usize>,
     end: Option<usize>,
