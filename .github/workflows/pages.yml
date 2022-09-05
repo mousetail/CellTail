@@ -32,15 +32,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Install rust
-        run: |
-          apt-get install cargo -y
+      - name: Install latest rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
       # Runs a set of commands using the runners shell
       - name: Build the repo
         run: |
           cd $GITHUB_WORKSPACE
           mkdir wasm-build
-          cargo build --target wasm32-unkown-unknown
+          cargo build --target wasm32-unkown-unknown --release
           cp web_demo/* wasm_build
           wasm-bindgen target/wasm32-unknown-unknown/debug/cell_tail.wasm --out-dir wasm_build --target web
       - name: Upload artifact
