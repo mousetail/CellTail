@@ -40,7 +40,9 @@ jobs:
           override: true
 
       - name: Add wasm target
-        run: rustup target add wasm32-unknown-unknown
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-bindgen
 
       # Runs a set of commands using the runners shell
       - name: Build the repo
