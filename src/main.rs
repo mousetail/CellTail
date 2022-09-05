@@ -2,9 +2,9 @@
 use crate::wasm_output::FunctionWriter;
 #[cfg(target_arch = "wasm32")]
 use console_error_panic_hook;
-#[cfg(target_arch = "wasm32")]
-use serde_json::to_string;
+#[cfg(not(target_arch = "wasm32"))]
 use std::env;
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs;
 #[cfg(target_arch = "wasm32")]
 use std::panic;

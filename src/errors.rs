@@ -199,7 +199,7 @@ impl CellTailError {
 
     pub fn print<T: std::io::Write>(&self, source: Vec<char>, destination: &mut T) {
         Self::set_color(31, destination);
-        writeln!(destination, "There was a error running the code");
+        writeln!(destination, "There was a error running the code").unwrap();
         Self::set_color(0, destination);
 
         if let (Some(start_pos), Some(end_pos)) = (self.start, self.end) {
