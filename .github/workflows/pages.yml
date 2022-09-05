@@ -46,10 +46,9 @@ jobs:
       - name: Build the repo
         run: |
           cd $GITHUB_WORKSPACE
-          mkdir wasm-build
+          mkdir web_demo/wasm_build
           cargo build --target wasm32-unknown-unknown --release
-          cp web_demo/* wasm_build
-          wasm-bindgen target/wasm32-unknown-unknown/debug/cell_tail.wasm --out-dir wasm_build --target web
+          wasm-bindgen target/wasm32-unknown-unknown/debug/cell_tail.wasm --out-dir web_demo/wasm_build --target web
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
