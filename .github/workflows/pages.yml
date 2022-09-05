@@ -50,7 +50,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           mkdir web_demo/wasm_build
           cargo build --target wasm32-unknown-unknown --release
-          wasm-bindgen target/wasm32-unknown-unknown/debug/cell_tail.wasm --out-dir web_demo/wasm_build --target web
+          wasm-bindgen target/wasm32-unknown-unknown/release/cell_tail.wasm --out-dir web_demo/wasm_build --target web
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
