@@ -11,16 +11,17 @@ body {
     box-sizing: border-box;
 }
 
-textarea {
+textarea, #code {
     width: calc(100% - 1rem);
     border: 1px solid grey;
     margin: 0.5rem;
+    min-height: 10rem;
 }
 
 #output {
     width: calc(100% - 1rem);
     border: 1px solid grey;
-    min-height: 20rem;
+    min-height: 10rem;
     margin: 0.5rem;
 }
 
@@ -42,7 +43,21 @@ button:hover {
 <body>
 
 <h2>Code</h2>
-<textarea id="code"></textarea>
+<label>Find a example program: <select  id="examples">
+    <option value="">None</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant A)</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world%20c.ct">Hello World (Variant B)</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant C)</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/functions.ct">Functions</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/counter.ct">Countdown</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/sort.ct">Sort</option>
+    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes</option>
+</select></label>
+
+<div id="code">
+function () {} // abc
+N:5:12+18 # comment
+</div>
 <h2>Input</h2>
 <textarea id="input"></textarea>
 <br>
@@ -52,9 +67,13 @@ button:hover {
 <button>Clear</button><br>
 <pre readonly id="output"></pre>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.js" integrity="sha512-7s3F2rOCm3IxjF8NjYsmlhE8gNOiaj2i9Uq6MZch73ApkLH2/iuoB7q3Z4NFiS8GTmRhyHKSKulosEgwDZf2Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- <script src="syntax.js"></script> -->
 <script type="module">
 import init, { wasm_parse_run_code } from "../wasm_build/cell_tail.js";
 
+let editor;
 
 let output = document.getElementById('output');
 window.handle_output = function(val) {
@@ -70,14 +89,44 @@ window.handle_error = function(val) {
     output.appendChild(span);
 }
 
+let changes=0;
+
 let start_page = async ()=> {
     await init();
+
+
+    //ace.config.set("basePath", window.location.href);
+    ace.config.setModuleUrl("ace/mode/celltail", window.location.href+"/syntax.js");
+    editor = ace.edit("code");
+    editor.setTheme("ace/theme/chrome");
+    editor.session.setMode("ace/mode/celltail");
+
+    editor.getSession().on('change', ()=>{
+        changes++;
+        console.log(changes);
+        if (changes % 3 == 0){
+            console.log(changes);
+            document.getElementById('examples').value = "";
+        }
+    })
+    //editor.session.setMode("celltail")
 }
+
+document.getElementById('examples').addEventListener('change', async (ev)=>{
+    if (ev.target.value) {
+        let res = await fetch(ev.target.value);
+        if (!res.ok) {
+            handle_error("Failed to fetch example" + ev.target.textContent + "\n")
+        }
+        let data = await res.text();
+        editor.setValue(data);
+    }
+})
 
 document.getElementById('run').addEventListener('click',
     ()=>{
         console.log("running", wasm_parse_run_code(
-        document.getElementById('code').value,
+        editor.getValue(),
         document.getElementById('input').value
     ))
     }

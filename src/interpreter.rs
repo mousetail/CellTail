@@ -72,21 +72,24 @@ fn interpret_iteration(cells: &Vec<Cell>, program: &parser::Program) -> Vec<Cell
     return next_value;
 }
 
-fn print_cells(cells: &Vec<Cell>) {
+fn print_cells<T: std::io::Write>(cells: &Vec<Cell>, output_writer: &mut T) {
     for cell in cells {
         if cell.value_from_top != Literal::Null {
-            print!(
+            write!(
+                output_writer,
                 "({:0>4}, {:0>4}, {:0>4}) ",
                 cell.value_from_left, cell.value_from_top, cell.value_from_right
-            );
+            )
+            .unwrap();
         }
     }
-    println!();
+    writeln!(output_writer).unwrap();
 }
 
-fn interpret(
+fn interpret<T: std::io::Write>(
     program: &parser::Program,
     input: Vec<isize>,
+    output_writer: &mut T,
 ) -> errors::CellTailResult<Vec<Option<isize>>> {
     let mut cells: Vec<Cell> = input
         .iter()
@@ -98,7 +101,7 @@ fn interpret(
         .collect();
 
     if program.attributes.debug {
-        print_cells(&cells);
+        print_cells(&cells, output_writer);
     }
 
     let mut modified = true;
@@ -108,9 +111,11 @@ fn interpret(
         cells = new_cells;
 
         if program.attributes.debug {
-            print_cells(&cells);
+            print_cells(&cells, output_writer);
 
-            std::thread::sleep(std::time::Duration::from_secs_f32(0.25))
+            if cfg!(not(target_arch = "wasm32")) {
+                std::thread::sleep(std::time::Duration::from_secs_f32(0.25))
+            }
         }
 
         // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
@@ -177,10 +182,10 @@ pub fn run_program<T: std::io::Write>(
         attributes::InputSource::Constant(constant) => constant.to_vec(),
     };
 
-    let result = interpret(&program, input)?;
+    let result = interpret(&program, input, output)?;
 
     match &program.attributes.output_mode {
-        attributes::IOFormat::Characters => write!(
+        attributes::IOFormat::Characters => writeln!(
             output,
             "{}",
             result
@@ -192,7 +197,7 @@ pub fn run_program<T: std::io::Write>(
                 .collect::<String>()
         )
         .expect("Failed to print output"),
-        attributes::IOFormat::Numbers => write!(
+        attributes::IOFormat::Numbers => writeln!(
             output,
             "{}",
             result
