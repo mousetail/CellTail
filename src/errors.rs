@@ -1,5 +1,16 @@
+#[cfg(not(arch = "wasm32"))]
 use atty::Stream;
 use serde::Serialize;
+
+#[cfg(not(arch = "wasm32"))]
+fn is_tty() -> bool {
+    atty::is(Stream::Stderr)
+}
+
+#[cfg(arch = "wasm32")]
+fn is_tty() -> bool {
+    false
+}
 
 pub trait SourceCodePosition {
     fn get_start(&self) -> Option<usize>;
@@ -70,9 +81,9 @@ impl CellTailError {
         }
     }
 
-    fn set_color(color: u8) {
-        if atty::is(Stream::Stderr) {
-            eprint!("\x1b[{}m", color)
+    fn set_color<T: std::io::Write>(color: u8, destination: &mut T) {
+        if is_tty() {
+            write!(destination, "\x1b[{}m", color).unwrap()
         }
     }
 
@@ -126,27 +137,37 @@ impl CellTailError {
         }
     }
 
-    fn highlight_line(
+    fn highlight_line<T: std::io::Write>(
         source: &Vec<char>,
         line_start: usize,
         error_start: usize,
         line_end: usize,
         error_end: usize,
+        output: &mut T,
     ) {
-        Self::set_color(33);
-        eprintln!(
+        Self::set_color(33, output);
+        writeln!(
+            output,
             "> \t{}",
             source[line_start..line_end].iter().collect::<String>()
-        );
-        eprintln!(
+        )
+        .unwrap();
+        writeln!(
+            output,
             "> \t{}{}",
             " ".repeat(error_start),
             "^".repeat(error_end - error_start)
-        );
-        Self::set_color(0);
+        )
+        .unwrap();
+        Self::set_color(0, output);
     }
 
-    fn highlight_error(source: &Vec<char>, start_info: LinePosition, end_info: LinePosition) {
+    fn highlight_error<T: std::io::Write>(
+        source: &Vec<char>,
+        start_info: LinePosition,
+        end_info: LinePosition,
+        output: &mut T,
+    ) {
         if start_info.line_number == end_info.line_number {
             Self::highlight_line(
                 source,
@@ -154,6 +175,7 @@ impl CellTailError {
                 start_info.column_number,
                 end_info.line_end,
                 end_info.column_number,
+                output,
             );
         } else {
             Self::highlight_line(
@@ -162,6 +184,7 @@ impl CellTailError {
                 start_info.column_number,
                 start_info.line_end,
                 start_info.line_end - start_info.line_start,
+                output,
             );
             Self::highlight_line(
                 source,
@@ -169,35 +192,40 @@ impl CellTailError {
                 0,
                 end_info.line_end,
                 end_info.column_number,
+                output,
             )
         }
     }
 
-    pub fn print(&self, source: Vec<char>) {
-        Self::set_color(31);
-        eprintln!("There was a error running the code");
-        Self::set_color(0);
+    pub fn print<T: std::io::Write>(&self, source: Vec<char>, destination: &mut T) {
+        Self::set_color(31, destination);
+        writeln!(destination, "There was a error running the code");
+        Self::set_color(0, destination);
 
         if let (Some(start_pos), Some(end_pos)) = (self.start, self.end) {
             let line_info = Self::get_line_number(&source, start_pos);
             let line_end_info = Self::get_line_number(&source, end_pos);
 
-            eprintln!(
+            writeln!(
+                destination,
                 "Line {} Column {} (pos {start_pos}) to line {} column {} (pos: {end_pos}):",
                 line_info.line_number,
                 line_info.column_number,
                 line_end_info.line_number,
                 line_end_info.column_number,
-            );
+            )
+            .unwrap();
 
-            Self::highlight_error(&source, line_info, line_end_info);
+            Self::highlight_error(&source, line_info, line_end_info, destination);
         } else if let Some(pos) = self.start.or(self.end) {
             let line_info = Self::get_line_number(&source, pos);
 
-            eprint!(
+            write!(
+                destination,
                 "At line {} column {}:",
                 line_info.line_number, line_info.column_number
-            );
+            )
+            .unwrap();
 
             Self::highlight_error(
                 &source,
@@ -206,12 +234,13 @@ impl CellTailError {
                     column_number: line_info.column_number + 1,
                     ..line_info
                 },
+                destination,
             );
         } else {
-            eprint!("At an unkown location: ")
+            writeln!(destination, "At an unkown location: ").unwrap()
         }
 
-        eprintln!("{}", self.description)
+        writeln!(destination, "{}", self.description).unwrap()
     }
 }
 

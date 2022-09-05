@@ -42,11 +42,20 @@ fn parse_and_run_code<T: std::io::Write>(
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn wasm_parse_run_code(code: &str, input: &str) -> String {
-    parse_and_run_code(
-        &code.chars().collect(),
+    let source_code = code.chars().collect();
+
+    let error = parse_and_run_code(
+        &source_code,
         vec![input.to_owned()],
         &mut wasm_output::FunctionWriter::create_stdout(),
     );
+
+    if let Err(error) = error {
+        error.print(
+            source_code,
+            &mut wasm_output::FunctionWriter::create_stderr(),
+        )
+    }
 
     "".to_string()
 }
@@ -62,7 +71,7 @@ fn main() {
         env::args().skip(2).collect(),
         &mut std::io::stdout(),
     ) {
-        b.print(contents_chars);
+        b.print(contents_chars, &mut std::io::stderr());
     }
 }
 

@@ -165,7 +165,10 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
     }
 
     if stack.len() >= 2 && stack[1].contents.len() > 0 {
-        panic!("Missing a ; at the end")
+        Err(errors::CellTailError::new(
+            stack.last().unwrap(),
+            "Expected a semicolon at the end".to_owned(),
+        ))?
     }
 
     Ok(stack.remove(0))
