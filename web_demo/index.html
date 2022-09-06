@@ -27,6 +27,8 @@ textarea, #code {
     border: 1px solid grey;
     min-height: 10rem;
     margin: 0.5rem;
+    background: white;
+    border-radius: 0
 }
 
 button {
@@ -41,6 +43,10 @@ button {
 button:hover {
     background: black;
     color: white;
+}
+
+li {
+    margin-bottom: 0.5rem;
 }
 
 @media (min-width: 750px) {
@@ -59,13 +65,21 @@ button:hover {
         padding: 1rem;
     }
 }
+
+code, pre {
+    background-color: #ddd;
+    padding: 0.25rem;
+    margin: 0.25rem;
+    border-radius: 0.25rem;
+}
+
 </style>
 </head>
 <body>
-<h1><a href="https://github.com/mousetail/CellTail/blob/main/README.md">Cell Tail</a></h1>
 
 <div class="two-columns">
     <div class="left-column">
+        <h1><a href="https://github.com/mousetail/CellTail/blob/main/README.md">Cell Tail</a> - A esoteric 1d-automata based programing language</h1>
 
         <h2>Code</h2>
         <label>Find a example program: <select  id="examples">
@@ -79,34 +93,65 @@ button:hover {
             <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes</option>
         </select></label>
 
-        <div id="code">
-        function () {} // abc
-        N:5:12+18 # comment
-        </div>
+        <div id="code"></div>
         <h2>Input</h2>
         <textarea id="input"></textarea>
         <br>
         <button id="run">Run</button>
         <h2>Output</h2>
-        <button>Clear</button><br>
+        <button id="clear">Clear</button><br>
         <pre readonly id="output"></pre>
     </div>
 
     <div class="right-column">
         <h2>Quick Reference</h2>
 
-        <p>Change all 1s into 2s</p>
+        <pre>from_left,from_top,from_right:to_left,to_bottom,to_right;#comment</pre>
 
-        <pre>_,1,_:N,2,N;</pre>
+        <h3>Operators</h3>
 
-        <p>Invert numbers greater than 5</p>
-        <pre>_,a&5..,_:N,-a,N</pre>
+        <ul>
+            <li><code>+</code> Plus or concatenate</li>
+            <li><code>-</code> Subtract or concatenate</li>
+            <li><code>*</code> Multiply or concatenate</li>
+            <li><code>/</code> Divide or concatenate</li>
+            <li><code>^</code> Bitwise XOR or concatenate</li>
+        </ul>
+
+        <h3>Patterns</h3>
+
+        <ul>
+            <li><code>&</code> And</li>
+            <li><code>|</code> Or</li>
+            <li><Code>a..b</code> Between a and b (exclusive). A and B must be expressions.</li>
+        </ul>
+
+        Patterns may contain expressions, but any variables must appear alone first.
+
+        <h3>Functions</h3>
+
+        <pre>fn argument: value;</pre>
+
+        <p>Functions may not call other functions.</p>
+
+        <h3>Options</h3>
+
+        <ul>
+            <li><code>D=T;</code> or <code>Debug=True;</code> Show intermediate values</li>
+            <li><code>D=F;</code> or <code>Debug=False;</code> Show only final result (default)</li>
+            <li><code>I=C C;</code> or <code>Input = Cmd Characters;</code> Take input as character codes (default)</li>
+            <li><code>I=C N;</code> or <code>Input = Cmd Numbers;</code> Take input as comma seperated numbers</li>
+            <li><code>I=1,2;</code> Input is 1,2</li>
+            <li><code>O=C;</code> or <code>Output = Characters;</code> Output as characters</li>
+            <li><code>O=N;</code> or <code>Output = Numbers;</code>Output as comma seperated numbers</li>
+        </ul>
+
+        <a href="https://github.com/mousetail/CellTail/blob/main/README.md">Full Specification</a>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.js" integrity="sha512-7s3F2rOCm3IxjF8NjYsmlhE8gNOiaj2i9Uq6MZch73ApkLH2/iuoB7q3Z4NFiS8GTmRhyHKSKulosEgwDZf2Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<!-- <script src="syntax.js"></script> -->
 <script type="module">
 import init, { wasm_parse_run_code } from "./wasm_build/cell_tail.js";
 
@@ -129,24 +174,27 @@ window.handle_error = function(val) {
 let changes=0;
 
 let start_page = async ()=> {
+
     await init();
 
 
     //ace.config.set("basePath", window.location.href);
-    ace.config.setModuleUrl("ace/mode/celltail", window.location.href+"/syntax.js");
+    ace.config.setModuleUrl("ace/mode/celltail", new URL("syntax.js", window.location.href));
     editor = ace.edit("code");
     editor.setTheme("ace/theme/chrome");
     editor.session.setMode("ace/mode/celltail");
+    editor.setValue(atob(window.location.hash.substr(1)))
 
-    editor.getSession().on('change', ()=>{
+    editor.getSession().on('change', (ev)=>{
         changes++;
         console.log(changes);
         if (changes % 3 == 0){
             console.log(changes);
             document.getElementById('examples').value = "";
         }
+
+        window.location.hash = btoa(editor.getValue())
     })
-    //editor.session.setMode("celltail")
 }
 
 document.getElementById('examples').addEventListener('change', async (ev)=>{
@@ -168,6 +216,10 @@ document.getElementById('run').addEventListener('click',
     ))
     }
 )
+
+document.getElementById('clear').addEventListener('click', ()=>{
+    document.getElementById('output').replaceChildren();
+})
 
 start_page();
 </script>

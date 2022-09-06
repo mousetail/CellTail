@@ -1,6 +1,6 @@
 # CellTail
 
-[Try the interactive online demo](https://mousetail.github.io/celltail)
+[Try the interactive online demo](https://mousetail.github.io/CellTail)
 
 Cell tail is a 2d automata based programming language.
 
