@@ -1,4 +1,7 @@
 # CellTail
+
+[Try the interactive online demo](https://mousetail.github.io/celltail)
+
 Cell tail is a 2d automata based programming language.
 
 At the start of the program, one cell is created for every element of the input. Then a rule is applied to every cell until no more rules are possible or every cell is deleted.

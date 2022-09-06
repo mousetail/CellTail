@@ -15,7 +15,11 @@ textarea, #code {
     width: calc(100% - 1rem);
     border: 1px solid grey;
     margin: 0.5rem;
-    min-height: 10rem;
+    min-height: 5rem;
+}
+
+#code {
+    height: 10rem;
 }
 
 #output {
@@ -38,34 +42,67 @@ button:hover {
     background: black;
     color: white;
 }
+
+@media (min-width: 750px) {
+    .two-columns {
+        display: flex;
+        flex-direction: row;
+        justify-content: stretch;
+    }
+
+    .left-column {
+        flex-grow: 1;
+        padding: 1rem;
+    }
+
+    .right-column {
+        padding: 1rem;
+    }
+}
 </style>
 </head>
 <body>
+<h1><a href="https://github.com/mousetail/CellTail/blob/main/README.md">Cell Tail</a></h1>
 
-<h2>Code</h2>
-<label>Find a example program: <select  id="examples">
-    <option value="">None</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant A)</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world%20c.ct">Hello World (Variant B)</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant C)</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/functions.ct">Functions</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/counter.ct">Countdown</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/sort.ct">Sort</option>
-    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes</option>
-</select></label>
+<div class="two-columns">
+    <div class="left-column">
 
-<div id="code">
-function () {} // abc
-N:5:12+18 # comment
+        <h2>Code</h2>
+        <label>Find a example program: <select  id="examples">
+            <option value="">None</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant A)</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world%20c.ct">Hello World (Variant B)</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant C)</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/functions.ct">Functions</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/counter.ct">Countdown</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/sort.ct">Sort</option>
+            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes</option>
+        </select></label>
+
+        <div id="code">
+        function () {} // abc
+        N:5:12+18 # comment
+        </div>
+        <h2>Input</h2>
+        <textarea id="input"></textarea>
+        <br>
+        <button id="run">Run</button>
+        <h2>Output</h2>
+        <button>Clear</button><br>
+        <pre readonly id="output"></pre>
+    </div>
+
+    <div class="right-column">
+        <h2>Quick Reference</h2>
+
+        <p>Change all 1s into 2s</p>
+
+        <pre>_,1,_:N,2,N;</pre>
+
+        <p>Invert numbers greater than 5</p>
+        <pre>_,a&5..,_:N,-a,N</pre>
+    </div>
 </div>
-<h2>Input</h2>
-<textarea id="input"></textarea>
-<br>
-<button id="run">Run</button>
-<h2>Output</h2>
-<div class="output">
-<button>Clear</button><br>
-<pre readonly id="output"></pre>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.js" integrity="sha512-7s3F2rOCm3IxjF8NjYsmlhE8gNOiaj2i9Uq6MZch73ApkLH2/iuoB7q3Z4NFiS8GTmRhyHKSKulosEgwDZf2Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
