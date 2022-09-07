@@ -1,6 +1,4 @@
 #[cfg(target_arch = "wasm32")]
-use crate::wasm_output::FunctionWriter;
-#[cfg(target_arch = "wasm32")]
 use console_error_panic_hook;
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;

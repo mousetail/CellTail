@@ -7,6 +7,7 @@ use crate::runtime::pattern_list::PatternList;
 use crate::tokenizer::{Token, TokenKind};
 use std::collections::HashMap;
 
+mod parse_array;
 mod parse_attribute;
 mod parse_expression;
 mod parse_pattern;

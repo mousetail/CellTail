@@ -1,17 +1,20 @@
 use crate::errors;
 use crate::lexer::{LexerToken, TokenGroup};
+use crate::parser::parse_array::parse_array;
 use crate::parser::parse_expression;
 use crate::runtime::literal::Literal;
 use crate::runtime::pattern::Pattern;
 use crate::tokenizer::{Token, TokenKind};
 
 pub(super) fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Pattern> {
-    assert!(
-        input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None,
-        "Unexpected input delimiter: {:?}",
-        input.delimiter
-    );
-
+    if input.delimiter == Some('[') {
+        return parse_array(
+            input,
+            parse_as_pattern,
+            |a, b| Ok(Pattern::Tuple(vec![a, b])),
+            Pattern::Literal(Literal::Null),
+        );
+    }
     if input.contents.len() == 1 {
         return Ok(match &input.contents[0] {
             LexerToken::Group(group) => parse_as_pattern(group.clone())?,

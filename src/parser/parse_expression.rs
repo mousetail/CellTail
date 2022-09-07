@@ -1,15 +1,26 @@
 use crate::errors;
 use crate::lexer::{LexerToken, TokenGroup};
+use crate::parser::parse_array::parse_array;
 use crate::runtime::expression::{BinaryOperator, Expression, UnaryOperator};
 use crate::runtime::literal::Literal;
 use crate::tokenizer::{Token, TokenKind};
 
 pub(super) fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<Expression> {
-    assert!(
-        input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None,
-        "Unexpected input delimiter: {:?}",
-        input.delimiter
-    );
+    if input.delimiter == Some('[') {
+        return parse_array(
+            input,
+            parse_as_expression,
+            |a, b| Ok(Expression::Tuple(vec![a, b])),
+            Expression::Literal(Literal::Null),
+        );
+    }
+
+    if !(input.delimiter == Some('(') || input.delimiter == Some(';') || input.delimiter == None) {
+        return Err(errors::CellTailError::new(
+            &input,
+            format!("Unexpected input delimiter: {:?}", input.delimiter),
+        ));
+    }
     if input.contents.len() == 1 {
         return Ok(match &input.contents[0] {
             LexerToken::Group(group) => parse_as_expression(group.clone())?,
