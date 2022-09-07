@@ -81,18 +81,10 @@ fn print_cells<T: std::io::Write>(cells: &Vec<Cell>, output_writer: &mut T) {
                 cell.value_from_left, cell.value_from_top, cell.value_from_right
             )
             .unwrap();
-        } else if index == 0{
-            write!(
-                output_writer,
-                "{: >4}) ",
-                cell.value_from_right
-            ).unwrap()
+        } else if index == 0 {
+            write!(output_writer, "{: >4}) ", cell.value_from_right).unwrap()
         } else if index == cells.len() - 1 {
-            write!(
-                output_writer,
-                "({: >4},",
-                cell.value_from_left
-            ).unwrap()
+            write!(output_writer, "({: >4},", cell.value_from_left).unwrap()
         }
     }
     writeln!(output_writer).unwrap();
@@ -120,7 +112,7 @@ fn interpret<T: std::io::Write>(
 
     let mut modified = true;
     while modified {
-        iteration_number+=1;
+        iteration_number += 1;
         let new_cells = interpret_iteration(&cells, program);
         modified = cells != new_cells;
         cells = new_cells;
@@ -135,8 +127,10 @@ fn interpret<T: std::io::Write>(
 
         if let Some(max_iteration_number) = program.attributes.max_iterations {
             if iteration_number > max_iteration_number {
-
-                return Err(errors::CellTailError::new(&errors::UnkownLocationError, format!("Exceeded maximum iteration number {max_iteration_number}")))
+                return Err(errors::CellTailError::new(
+                    &errors::UnkownLocationError,
+                    format!("Exceeded maximum iteration number {max_iteration_number}"),
+                ));
             }
         }
     }
@@ -162,7 +156,7 @@ fn interpret<T: std::io::Write>(
 
 fn get_contents(data: &str, format: &attributes::IOFormat) -> errors::CellTailResult<Vec<isize>> {
     match format {
-        attributes::IOFormat::Characters => Ok(data.chars().map(|i| i as u8 as isize).collect()),
+        attributes::IOFormat::Characters => Ok(data.chars().map(|i| i as u32 as isize).collect()),
         attributes::IOFormat::Numbers => data
             .split(',')
             .map(str::parse)
@@ -211,7 +205,8 @@ pub fn run_program<T: std::io::Write>(
             result
                 .iter()
                 .map(|i| match i {
-                    Some(i @ 0..=256) => *i as u8 as char,
+                    Some(i) =>
+                        char::from_u32((*i).try_into().unwrap_or(0xFFFD)).unwrap_or('\u{FFFD}'),
                     _ => '?',
                 })
                 .collect::<String>()
