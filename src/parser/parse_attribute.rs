@@ -130,6 +130,9 @@ fn parse_single_attribute(
                 _ => Err(errors::CellTailError::new(&value, "Invalid type for property \"debug\", note: must be token, no parenthesis allowed here".to_owned()))
             }
         }
+        "M" | "Max" | "MaxIterations" => {
+            Ok(attrs.max_iterations = Some(parse_as_number(&value)?))
+        },
         m => {
             Err(errors::CellTailError::new(&value, format!("Unexpected property name {}, expected one of 'Input', 'I', 'Output', 'O', 'Debug', 'D'", m)))
         }

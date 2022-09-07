@@ -104,8 +104,11 @@ fn interpret<T: std::io::Write>(
         print_cells(&cells, output_writer);
     }
 
+    let mut iteration_number = 0;
+
     let mut modified = true;
     while modified {
+        iteration_number+=1;
         let new_cells = interpret_iteration(&cells, program);
         modified = cells != new_cells;
         cells = new_cells;
@@ -118,7 +121,12 @@ fn interpret<T: std::io::Write>(
             }
         }
 
-        // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
+        if let Some(max_iteration_number) = program.attributes.max_iterations {
+            if iteration_number > max_iteration_number {
+
+                return Err(errors::CellTailError::new(&errors::UnkownLocationError, format!("Exceeded maximum iteration number {max_iteration_number}")))
+            }
+        }
     }
 
     Ok(cells
