@@ -28,7 +28,7 @@ impl fmt::Display for Literal {
         // is very similar to `println!`.
         match self {
             Literal::Number(k) => {
-                write!(f, "{}", k)
+                f.pad(&format!("{}", k))
             }
             Literal::Null => {
                 write!(f, "NULL")
