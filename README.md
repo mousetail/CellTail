@@ -134,13 +134,21 @@ Output = Characters; # Attemptt to convert the output to character values, subst
 Output = Numbers; # Output as , seperated numbers
 ```
 
-# Debug Mode
+## Debug Mode
 
 There are 2 values:
 
 ```
 Debug = False; # Do not print intermediate states
 Debug = True; # Print intermediate states
+```
+
+## Max iterations
+
+You can use the `M` operator to set a limit on the maximum number of iterations. This is especially helpful on the web version which can't easily be killed.
+
+```
+Max=5; #Limit to 5 iterations
 ```
 
 # Functions
