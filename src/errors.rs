@@ -51,6 +51,16 @@ impl SourceCodePosition for UnkownLocationError {
     }
 }
 
+impl<T: SourceCodePosition> SourceCodePosition for Option<T> {
+    fn get_start(&self) -> Option<usize> {
+        self.as_ref().and_then(|i| i.get_start())
+    }
+
+    fn get_end(&self) -> Option<usize> {
+        self.as_ref().and_then(|i| i.get_end())
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct CellTailError {
     start: Option<usize>,

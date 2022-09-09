@@ -116,7 +116,9 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
             } => {
                 let last_stack_value = stack.pop().expect("Unmatched closing bracket (type 6)");
                 if last_stack_value.delimiter != Some(';') {
-                    panic!("Unexpected ;, expected a {:?}, you may be missing a closing bracket (type 7)", last_stack_value.delimiter)
+                    return Err(errors::CellTailError::new(
+                        &last_stack_value,
+                         format!("Unexpected ;, expected a {:?}, you may be missing a closing bracket (type 7)", last_stack_value.delimiter)));
                 }
                 stack
                     .last_mut()
@@ -158,10 +160,13 @@ pub fn lex(input: Vec<Token>) -> errors::CellTailResult<TokenGroup> {
     }
 
     if stack.len() != 2 {
-        panic!(
-            "Missing a closing bracket (type 4) Number required: {}",
-            stack.len() as isize - 1
-        );
+        return Err(errors::CellTailError::new(
+            &stack.pop(),
+            format!(
+                "Missing a closing bracket (type 4) Number required: {}",
+                stack.len() as isize - 1
+            ),
+        ));
     }
 
     if stack.len() >= 2 && stack[1].contents.len() > 0 {
