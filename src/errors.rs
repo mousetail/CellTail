@@ -97,6 +97,10 @@ impl CellTailError {
         }
     }
 
+    fn is_location_known(&self) -> bool {
+        self.start.is_some() || self.end.is_some()
+    }
+
     fn get_line_number(source: &Vec<char>, position: usize) -> LinePosition {
         let lines: Vec<_> = source
             .iter()
@@ -230,7 +234,7 @@ impl CellTailError {
         } else if let Some(pos) = self.start.or(self.end) {
             let line_info = Self::get_line_number(&source, pos);
 
-            write!(
+            writeln!(
                 destination,
                 "At line {} column {}:",
                 line_info.line_number, line_info.column_number
@@ -255,3 +259,16 @@ impl CellTailError {
 }
 
 pub type CellTailResult<T> = Result<T, CellTailError>;
+
+pub fn fallback_position<T, E: SourceCodePosition + std::fmt::Debug>(
+    res: CellTailResult<T>,
+    fallback: &E,
+) -> CellTailResult<T> {
+    res.map_err(|u| {
+        if u.is_location_known() {
+            u
+        } else {
+            CellTailError::new(fallback, u.description)
+        }
+    })
+}

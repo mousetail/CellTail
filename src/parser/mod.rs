@@ -3,7 +3,7 @@ use crate::lexer::{LexerToken, TokenGroup};
 use crate::runtime::attributes;
 use crate::runtime::expression::Expression;
 use crate::runtime::pattern::Pattern;
-use crate::runtime::pattern_list::PatternList;
+use crate::runtime::pattern_list::{PatternList, PatternPosition};
 use crate::tokenizer::{Token, TokenKind};
 use std::collections::HashMap;
 
@@ -28,7 +28,11 @@ impl Program {
         }
     }
 
-    fn add_function_rule(&mut self, function_name: String, rule: (Pattern, Expression)) {
+    fn add_function_rule(
+        &mut self,
+        function_name: String,
+        rule: (Pattern, Expression, PatternPosition),
+    ) {
         if let Some(pattern_list) = self.functions.get_mut(&function_name) {
             pattern_list.0.push(rule);
         } else {
@@ -37,7 +41,7 @@ impl Program {
         }
     }
 
-    fn add_rule(&mut self, rule: (Pattern, Expression)) {
+    fn add_rule(&mut self, rule: (Pattern, Expression, PatternPosition)) {
         self.rules.0.push(rule);
     }
 }
@@ -45,6 +49,9 @@ impl Program {
 pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
     let mut out = Program::new();
     for statement in input.contents {
+        let statement_position = PatternPosition::new(&statement);
+        println!("Statement {statement:?} at {statement_position:?}");
+
         if let LexerToken::Group(group) = statement {
             if group.contains(TokenKind::Equals) {
                 parse_attribute::parse_attribute(group, &mut out.attributes)?;
@@ -76,11 +83,18 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                         out.add_function_rule(
                             function_name,
                             (
-                                parse_pattern::parse_as_pattern(TokenGroup {
-                                    delimiter: None,
-                                    contents: pattern.contents[2..].to_vec(),
-                                })?,
-                                parse_expression::parse_as_expression(expression)?,
+                                errors::fallback_position(
+                                    parse_pattern::parse_as_pattern(TokenGroup {
+                                        delimiter: None,
+                                        contents: pattern.contents[2..].to_vec(),
+                                    }),
+                                    &statement_position,
+                                )?,
+                                errors::fallback_position(
+                                    parse_expression::parse_as_expression(expression),
+                                    &statement_position,
+                                )?,
+                                PatternPosition::new(&statement_position),
                             ),
                         );
 
@@ -89,8 +103,15 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
                 }
 
                 out.add_rule((
-                    parse_pattern::parse_as_pattern(pattern)?,
-                    parse_expression::parse_as_expression(expression)?,
+                    errors::fallback_position(
+                        parse_pattern::parse_as_pattern(pattern),
+                        &statement_position,
+                    )?,
+                    errors::fallback_position(
+                        parse_expression::parse_as_expression(expression),
+                        &statement_position,
+                    )?,
+                    PatternPosition::new(&statement_position),
                 ))
             } else {
                 return Err(errors::CellTailError::new(

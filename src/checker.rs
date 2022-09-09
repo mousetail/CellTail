@@ -143,19 +143,25 @@ pub fn check_program(program: &parser::Program) -> errors::CellTailResult<()> {
             }
         }
 
-        check_pattern(
-            &rule.0,
-            CheckerMode::Pattern {
-                function_names: &function_names,
-            },
-            &mut vars,
+        errors::fallback_position(
+            check_pattern(
+                &rule.0,
+                CheckerMode::Pattern {
+                    function_names: &function_names,
+                },
+                &mut vars,
+            ),
+            &rule.2,
         )?;
-        check_expression(
-            &rule.1,
-            &vars,
-            CheckerMode::Pattern {
-                function_names: &function_names,
-            },
+        errors::fallback_position(
+            check_expression(
+                &rule.1,
+                &vars,
+                CheckerMode::Pattern {
+                    function_names: &function_names,
+                },
+            ),
+            &rule.2,
         )?
     }
 
@@ -163,7 +169,10 @@ pub fn check_program(program: &parser::Program) -> errors::CellTailResult<()> {
         for rule in &function.1 .0 {
             let mut vars = HashSet::new();
             check_pattern(&rule.0, CheckerMode::Function, &mut vars)?;
-            check_expression(&rule.1, &vars, CheckerMode::Function)?
+            errors::fallback_position(
+                check_expression(&rule.1, &vars, CheckerMode::Function),
+                &rule.2,
+            )?
         }
     }
 
