@@ -1,233 +1,249 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8">
+
 <head>
-<style>
-body {
-    font-family: sans-serif;
-}
+    <style>
+        body {
+            font-family: sans-serif;
+        }
 
-* {
-    box-sizing: border-box;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-textarea, #code {
-    width: calc(100% - 1rem);
-    border: 1px solid grey;
-    margin: 0.5rem;
-    min-height: 5rem;
-}
+        textarea,
+        #code {
+            width: calc(100% - 1rem);
+            border: 1px solid grey;
+            margin: 0.5rem;
+            min-height: 5rem;
+        }
 
-#code {
-    height: 10rem;
-}
+        #code {
+            height: 10rem;
+        }
 
-#output {
-    width: calc(100% - 1rem);
-    border: 1px solid grey;
-    min-height: 10rem;
-    margin: 0.5rem;
-    background: white;
-    border-radius: 0
-}
+        #output {
+            width: calc(100% - 1rem);
+            border: 1px solid grey;
+            min-height: 10rem;
+            margin: 0.5rem;
+            background: white;
+            border-radius: 0
+        }
 
-button {
-    width: calc(100% - 1rem);
-    border-radius: 0;
-    background: white;
-    border: 1px solid black;
-    margin: 0.5rem;
-    padding: 0.5rem;
-}
+        button {
+            width: calc(100% - 1rem);
+            border-radius: 0;
+            background: white;
+            border: 1px solid black;
+            margin: 0.5rem;
+            padding: 0.5rem;
+        }
 
-button:hover {
-    background: black;
-    color: white;
-}
+        button:hover {
+            background: black;
+            color: white;
+        }
 
-li {
-    margin-bottom: 0.5rem;
-}
+        li {
+            margin-bottom: 0.5rem;
+        }
 
-@media (min-width: 750px) {
-    .two-columns {
-        display: flex;
-        flex-direction: row;
-        justify-content: stretch;
-    }
+        @media (min-width: 750px) {
+            .two-columns {
+                display: flex;
+                flex-direction: row;
+                justify-content: stretch;
+            }
 
-    .left-column {
-        flex-grow: 1;
-        padding: 1rem;
-    }
+            .left-column {
+                flex-grow: 1;
+                padding: 1rem;
+            }
 
-    .right-column {
-        padding: 1rem;
-    }
-}
+            .right-column {
+                padding: 1rem;
+            }
+        }
 
-code, pre {
-    background-color: #ddd;
-    padding: 0.25rem;
-    margin: 0.25rem;
-    border-radius: 0.25rem;
-}
+        code,
+        pre {
+            background-color: #ddd;
+            padding: 0.25rem;
+            margin: 0.25rem;
+            border-radius: 0.25rem;
+        }
+    </style>
 
-</style>
-
-<title>CellTail</title>
+    <title>CellTail</title>
 
 </head>
+
 <body>
 
-<div class="two-columns">
-    <div class="left-column">
-        <h1><a href="https://github.com/mousetail/CellTail/blob/main/README.md">Cell Tail</a> - A esoteric 1d-automata based programing language</h1>
+    <div class="two-columns">
+        <div class="left-column">
+            <h1><a href="https://github.com/mousetail/CellTail/blob/main/README.md">Cell Tail</a> - A esoteric
+                1d-automata based programing language</h1>
 
-        <h2>Code</h2>
-        <label>Find a example program: <select  id="examples">
-            <option value="">None</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant A)</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world%20c.ct">Hello World (Variant B)</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">Hello World (Variant C)</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/functions.ct">Functions</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/counter.ct">Countdown</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/sort.ct">Sort</option>
-            <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes</option>
-        </select></label>
+            <h2>Code</h2>
+            <label>Find a example program: <select id="examples">
+                    <option value="">None</option>
+                    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world.ct">
+                        Hello World (Variant A)</option>
+                    <option
+                        value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello_world%20c.ct">
+                        Hello World (Variant B)</option>
+                    <option
+                        value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/hello%20world%203.ct">
+                        Hello World (Variant C)</option>
+                    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/functions.ct">
+                        Functions</option>
+                    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/counter.ct">
+                        Countdown</option>
+                    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/sort.ct">Sort
+                    </option>
+                    <option value="https://raw.githubusercontent.com/mousetail/CellTail/main/examples/primes.ct">Primes
+                    </option>
+                </select></label>
 
-        <div id="code"></div>
-        <h2>Input</h2>
-        <textarea id="input"></textarea>
-        <br>
-        <button id="run">Run</button>
-        <h2>Output</h2>
-        <button id="clear">Clear</button><br>
-        <pre readonly id="output"></pre>
+            <div id="code"></div>
+            <h2>Input</h2>
+            <textarea id="input"></textarea>
+            <br>
+            <button id="run">Run</button>
+            <h2>Output</h2>
+            <button id="clear">Clear</button><br>
+            <pre readonly id="output"></pre>
+        </div>
+
+        <div class="right-column">
+            <h2>Quick Reference</h2>
+
+            <pre>from_left,from_top,from_right:to_left,to_bottom,to_right;#comment</pre>
+
+            <h3>Operators</h3>
+
+            <ul>
+                <li><code>+</code> Plus or concatenate</li>
+                <li><code>-</code> Subtract or concatenate</li>
+                <li><code>*</code> Multiply or concatenate</li>
+                <li><code>/</code> Divide or concatenate</li>
+                <li><code>^</code> Bitwise XOR or concatenate</li>
+            </ul>
+
+            <h3>Patterns</h3>
+
+            <ul>
+                <li><code>&</code> And</li>
+                <li><code>|</code> Or</li>
+                <li><Code>a..b</code> Between a and b (exclusive). A and B must be expressions.</li>
+            </ul>
+
+            Patterns may contain expressions, but any variables must appear alone first.
+
+            <h3>Functions</h3>
+
+            <pre>fn argument: value;</pre>
+
+            <p>Functions may not call other functions.</p>
+
+            <h3>Options</h3>
+
+            <ul>
+                <li><code>D=T;</code> or <code>Debug=True;</code> Show intermediate values</li>
+                <li><code>D=F;</code> or <code>Debug=False;</code> Show only final result (default)</li>
+                <li><code>I=C C;</code> or <code>Input = Cmd Characters;</code> Take input as character codes (default)
+                </li>
+                <li><code>I=C N;</code> or <code>Input = Cmd Numbers;</code> Take input as comma seperated numbers</li>
+                <li><code>I=1,2;</code> Input is 1,2</li>
+                <li><code>O=C;</code> or <code>Output = Characters;</code> Output as characters</li>
+                <li><code>O=N;</code> or <code>Output = Numbers;</code> Output as comma seperated numbers</li>
+                <li><code>M=5;</code> or <code>Max= 5;</code> Limit to max 5 iterations</li>
+            </ul>
+
+            <a href="https://github.com/mousetail/CellTail/blob/main/README.md">Full Specification</a>
+        </div>
     </div>
 
-    <div class="right-column">
-        <h2>Quick Reference</h2>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.js"
+        integrity="sha512-7s3F2rOCm3IxjF8NjYsmlhE8gNOiaj2i9Uq6MZch73ApkLH2/iuoB7q3Z4NFiS8GTmRhyHKSKulosEgwDZf2Iw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        <pre>from_left,from_top,from_right:to_left,to_bottom,to_right;#comment</pre>
+    <script type="module">
+        import init, { wasm_parse_run_code } from "./wasm_build/cell_tail.js";
 
-        <h3>Operators</h3>
+        let editor;
 
-        <ul>
-            <li><code>+</code> Plus or concatenate</li>
-            <li><code>-</code> Subtract or concatenate</li>
-            <li><code>*</code> Multiply or concatenate</li>
-            <li><code>/</code> Divide or concatenate</li>
-            <li><code>^</code> Bitwise XOR or concatenate</li>
-        </ul>
-
-        <h3>Patterns</h3>
-
-        <ul>
-            <li><code>&</code> And</li>
-            <li><code>|</code> Or</li>
-            <li><Code>a..b</code> Between a and b (exclusive). A and B must be expressions.</li>
-        </ul>
-
-        Patterns may contain expressions, but any variables must appear alone first.
-
-        <h3>Functions</h3>
-
-        <pre>fn argument: value;</pre>
-
-        <p>Functions may not call other functions.</p>
-
-        <h3>Options</h3>
-
-        <ul>
-            <li><code>D=T;</code> or <code>Debug=True;</code> Show intermediate values</li>
-            <li><code>D=F;</code> or <code>Debug=False;</code> Show only final result (default)</li>
-            <li><code>I=C C;</code> or <code>Input = Cmd Characters;</code> Take input as character codes (default)</li>
-            <li><code>I=C N;</code> or <code>Input = Cmd Numbers;</code> Take input as comma seperated numbers</li>
-            <li><code>I=1,2;</code> Input is 1,2</li>
-            <li><code>O=C;</code> or <code>Output = Characters;</code> Output as characters</li>
-            <li><code>O=N;</code> or <code>Output = Numbers;</code> Output as comma seperated numbers</li>
-            <li><code>M=5;</code> or <code>Max= 5;</code> Limit to max 5 iterations</li>
-        </ul>
-
-        <a href="https://github.com/mousetail/CellTail/blob/main/README.md">Full Specification</a>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.10.0/ace.js" integrity="sha512-7s3F2rOCm3IxjF8NjYsmlhE8gNOiaj2i9Uq6MZch73ApkLH2/iuoB7q3Z4NFiS8GTmRhyHKSKulosEgwDZf2Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-<script type="module">
-import init, { wasm_parse_run_code } from "./wasm_build/cell_tail.js";
-
-let editor;
-
-let output = document.getElementById('output');
-window.handle_output = function(val) {
-    let span = document.createElement('span');
-    span.textContent = val;
-    output.appendChild(span);
-}
-
-window.handle_error = function(val) {
-    let span = document.createElement('span');
-    span.textContent = val;
-    span.style.color = 'red';
-    output.appendChild(span);
-}
-
-let changes=0;
-
-let start_page = async ()=> {
-
-    await init();
-
-
-    //ace.config.set("basePath", window.location.href);
-    ace.config.setModuleUrl("ace/mode/celltail", new URL("syntax.js", window.location.href));
-    editor = ace.edit("code");
-    editor.setTheme("ace/theme/chrome");
-    editor.session.setMode("ace/mode/celltail");
-    editor.setValue(atob(window.location.hash.substr(1)))
-
-    editor.getSession().on('change', (ev)=>{
-        changes++;
-        console.log(changes);
-        if (changes % 3 == 0){
-            console.log(changes);
-            document.getElementById('examples').value = "";
+        let output = document.getElementById('output');
+        window.handle_output = function (val) {
+            let span = document.createElement('span');
+            span.textContent = val;
+            output.appendChild(span);
         }
 
-        window.location.hash = btoa(editor.getValue())
-    })
-}
-
-document.getElementById('examples').addEventListener('change', async (ev)=>{
-    if (ev.target.value) {
-        let res = await fetch(ev.target.value);
-        if (!res.ok) {
-            handle_error("Failed to fetch example" + ev.target.textContent + "\n")
+        window.handle_error = function (val) {
+            let span = document.createElement('span');
+            span.textContent = val;
+            span.style.color = 'red';
+            output.appendChild(span);
         }
-        let data = await res.text();
-        editor.setValue(data);
-    }
-})
 
-document.getElementById('run').addEventListener('click',
-    ()=>{
-        console.log("running", wasm_parse_run_code(
-        editor.getValue(),
-        document.getElementById('input').value
-    ))
-    }
-)
+        let changes = 0;
 
-document.getElementById('clear').addEventListener('click', ()=>{
-    document.getElementById('output').replaceChildren();
-})
+        let start_page = async () => {
 
-start_page();
-</script>
+            await init();
 
-<script>
-</script>
+
+            //ace.config.set("basePath", window.location.href);
+            ace.config.setModuleUrl("ace/mode/celltail", new URL("syntax.js", window.location.href));
+            editor = ace.edit("code");
+            editor.setTheme("ace/theme/chrome");
+            editor.session.setMode("ace/mode/celltail");
+            editor.setValue(atob(window.location.hash.substr(1)))
+
+            editor.getSession().on('change', (ev) => {
+                changes++;
+                console.log(changes);
+                if (changes % 3 == 0) {
+                    console.log(changes);
+                    document.getElementById('examples').value = "";
+                }
+
+                window.location.hash = btoa(editor.getValue())
+            })
+        }
+
+        document.getElementById('examples').addEventListener('change', async (ev) => {
+            if (ev.target.value) {
+                let res = await fetch(ev.target.value);
+                if (!res.ok) {
+                    handle_error("Failed to fetch example" + ev.target.textContent + "\n")
+                }
+                let data = await res.text();
+                editor.setValue(data);
+            }
+        })
+
+        document.getElementById('run').addEventListener('click',
+            () => {
+                console.log("running", wasm_parse_run_code(
+                    editor.getValue(),
+                    document.getElementById('input').value
+                ))
+            }
+        )
+
+        document.getElementById('clear').addEventListener('click', () => {
+            document.getElementById('output').replaceChildren();
+        })
+
+        start_page();
+    </script>
+
+    <script>
+    </script>
 </body>

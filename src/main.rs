@@ -30,9 +30,9 @@ fn parse_and_run_code<T: std::io::Write>(
 
     checker::check_program(&structure)?;
 
-    if structure.attributes.debug {
-        println!("{:?}", structure);
-    }
+    // if structure.attributes.debug {
+    //     println!("{:?}", structure);
+    // }
 
     interpreter::run_program(structure, input, output)
 }

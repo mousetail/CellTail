@@ -50,7 +50,6 @@ pub fn parse(input: TokenGroup) -> errors::CellTailResult<Program> {
     let mut out = Program::new();
     for statement in input.contents {
         let statement_position = PatternPosition::new(&statement);
-        println!("Statement {statement:?} at {statement_position:?}");
 
         if let LexerToken::Group(group) = statement {
             if group.contains(TokenKind::Equals) {

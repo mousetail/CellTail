@@ -21,7 +21,6 @@ impl Pattern {
                 if lit == value {
                     true
                 } else {
-                    //println!("No match: literals {:?} and {:?} don't match", lit, value);
                     false
                 }
             }
@@ -36,7 +35,6 @@ impl Pattern {
             Pattern::Tuple(tup1) => {
                 if let Literal::Tuple(tup2) = value {
                     if tup2.len() != tup1.len() {
-                        //println!("No match: length is different {:?} vs {:?}", tup2, tup1);
                         false
                     } else {
                         tup1.iter()
@@ -44,7 +42,6 @@ impl Pattern {
                             .all(|(pat, val)| pat.match_dict(val, variables))
                     }
                 } else {
-                    // println!("Matching tuple with non tuple");
                     false
                 }
             }

@@ -86,7 +86,16 @@ fn parse_single_attribute(
                     "C" | "CMD" | "COMMANDLINEARGUMENTS" | "ARGS" | "ARGV" | "A" => Ok(attrs.input_mode = attributes::InputSource::Arg(input_format)),
                     _ => Err(errors::CellTailError::new(&value, "Invalid value for input mode, expected one of 'STDIN', 'CMD'".to_owned()))
                 }
-            } else {
+            } else if let [
+                LexerToken::BasicToken(Token{
+                    kind: TokenKind::String,
+                    value: input_format,
+                    ..
+                })
+            ] = value.contents.as_slice() {
+                Ok(attrs.input_mode = attributes::InputSource::Constant(input_format.chars().map(|i| i as u32 as isize).collect()))
+            }
+            else {
                 if let Ok(number) = parse_as_number(&value) {
                     Ok(attrs.input_mode = attributes::InputSource::Constant(vec![number]))
                 } else {
