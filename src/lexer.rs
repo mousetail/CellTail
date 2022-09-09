@@ -38,6 +38,10 @@ impl TokenGroup {
     }
 
     pub fn split_all(&self, kind: TokenKind) -> Vec<TokenGroup> {
+        if self.contents.is_empty() {
+            return vec![];
+        }
+
         return self
             .contents
             .split(|b| match b {
