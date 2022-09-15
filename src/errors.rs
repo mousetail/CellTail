@@ -81,8 +81,13 @@ impl CellTailError {
     where
         T: SourceCodePosition + std::fmt::Debug,
     {
-        if location.get_start() > location.get_end() {
-            panic!("{:?} is invalid: start > end", location);
+        if location.get_end().is_some() && location.get_start() > location.get_end() {
+            panic!(
+                "{:?} is invalid: start > end {:?} {:?}",
+                location,
+                location.get_start(),
+                location.get_end()
+            );
         }
         CellTailError {
             start: location.get_start(),

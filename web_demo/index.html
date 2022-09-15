@@ -196,8 +196,6 @@
         let start_page = async () => {
 
             await init();
-
-
             //ace.config.set("basePath", window.location.href);
             ace.config.setModuleUrl("ace/mode/celltail", new URL("syntax.js", window.location.href));
             editor = ace.edit("code");
