@@ -47,7 +47,7 @@ You can use the `+` operator to concatenate 2 lists.
 
 A number represents any integer. There are no floating point numbers. All the basic operators are available, including `+`, `-`, `*`, `/`, and the bitwise XOR operator `^`.
 
-When writing matching expressions for numbers, you can use `5..` for example to match nubmers over 5, of `8..10` for numbers 8 and 9.
+When writing matching expressions for numbers, you can use `5..` for example to match numbers over 5, of `8..10` for numbers 8 and 9.
 
 # Patterns
 
