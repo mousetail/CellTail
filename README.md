@@ -111,7 +111,7 @@ All options for the `|` operator must bind the same variables. Otherwise some va
 
 # Modifiers
 
-Special attribibutes can be set to modify how the program works:
+Special attributes can be set to modify how the program works:
 
 ## Input Mode
 
