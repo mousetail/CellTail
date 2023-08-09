@@ -18,6 +18,7 @@ mod runtime;
 mod tokenizer;
 #[cfg(target_arch = "wasm32")]
 mod wasm_output;
+mod shell_tools;
 
 fn parse_and_run_code<T: std::io::Write>(
     code: &Vec<char>,

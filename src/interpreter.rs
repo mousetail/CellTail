@@ -75,12 +75,26 @@ fn interpret_iteration(cells: &Vec<Cell>, program: &parser::Program) -> Vec<Cell
 fn print_cells<T: std::io::Write>(cells: &Vec<Cell>, output_writer: &mut T) {
     for (index, cell) in cells.iter().enumerate() {
         if cell.value_from_top != Literal::Null || (index > 0 && index < cells.len() - 1) {
+            crate::shell_tools::set_color(33, output_writer);
             write!(
                 output_writer,
-                "({: >4}, {: >4}, {: >4}) ",
-                cell.value_from_left, cell.value_from_top, cell.value_from_right
+                "\t({: >4} ",
+                cell.value_from_left
             )
             .unwrap();
+            crate::shell_tools::set_color(34, output_writer);
+            write!(
+                output_writer,
+                ", {: >4}",
+                cell.value_from_top
+            ).unwrap();
+            crate::shell_tools::set_color(35, output_writer);
+            write!(
+                output_writer,
+                ", {: >4})",
+                cell.value_from_right
+            ).unwrap();
+            crate::shell_tools::set_color(0, output_writer);
         } else if index == 0 {
             write!(output_writer, "{: >4}) ", cell.value_from_right).unwrap()
         } else if index == cells.len() - 1 {

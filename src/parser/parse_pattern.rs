@@ -100,6 +100,8 @@ pub(super) fn parse_as_pattern(input: TokenGroup) -> errors::CellTailResult<Patt
 
     Ok(Pattern::Expression(parse_expression::parse_as_expression(
         input,
+    ).map_err(
+        |err| err.map_description(|q|format!("Error parsing pattern as expression: {q}"))
     )?))
 
     // Err(errors::CellTailError::new(

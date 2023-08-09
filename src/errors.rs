@@ -1,16 +1,4 @@
-#[cfg(not(arch = "wasm32"))]
-use atty::Stream;
 use serde::Serialize;
-
-#[cfg(not(arch = "wasm32"))]
-fn is_tty() -> bool {
-    atty::is(Stream::Stderr)
-}
-
-#[cfg(arch = "wasm32")]
-fn is_tty() -> bool {
-    false
-}
 
 pub trait SourceCodePosition {
     fn get_start(&self) -> Option<usize>;
@@ -23,6 +11,7 @@ pub struct PointError(pub usize);
 pub struct RangeError(pub usize, pub usize);
 #[derive(Debug)]
 pub struct UnkownLocationError;
+use crate::shell_tools;
 
 impl SourceCodePosition for PointError {
     fn get_start(&self) -> Option<usize> {
@@ -96,9 +85,11 @@ impl CellTailError {
         }
     }
 
-    fn set_color<T: std::io::Write>(color: u8, destination: &mut T) {
-        if is_tty() {
-            write!(destination, "\x1b[{}m", color).unwrap()
+    pub fn map_description<T: Fn(String)->String>(self, function: T) -> CellTailError {
+        CellTailError {
+            description: function(self.description),
+            start: self.start,
+            end: self.end
         }
     }
 
@@ -164,7 +155,7 @@ impl CellTailError {
         error_end: usize,
         output: &mut T,
     ) {
-        Self::set_color(33, output);
+        shell_tools::set_color(33, output);
         writeln!(
             output,
             "> \t{}",
@@ -178,7 +169,7 @@ impl CellTailError {
             "^".repeat(error_end - error_start)
         )
         .unwrap();
-        Self::set_color(0, output);
+        shell_tools::set_color(0, output);
     }
 
     fn highlight_error<T: std::io::Write>(
@@ -217,9 +208,9 @@ impl CellTailError {
     }
 
     pub fn print<T: std::io::Write>(&self, source: Vec<char>, destination: &mut T) {
-        Self::set_color(31, destination);
+        shell_tools::set_color(31, destination);
         writeln!(destination, "There was a error running the code").unwrap();
-        Self::set_color(0, destination);
+        shell_tools::set_color(0, destination);
 
         if let (Some(start_pos), Some(end_pos)) = (self.start, self.end) {
             let line_info = Self::get_line_number(&source, start_pos);
@@ -258,9 +249,9 @@ impl CellTailError {
         } else {
             writeln!(destination, "At an unkown location: ").unwrap()
         }
-        Self::set_color(31, destination);
+        shell_tools::set_color(31, destination);
         writeln!(destination, "{}", self.description).unwrap();
-        Self::set_color(0, destination);
+        shell_tools::set_color(0, destination);
     }
 }
 

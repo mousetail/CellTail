@@ -55,7 +55,7 @@ pub(super) fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<E
         });
     }
 
-    if input.contains(TokenKind::Comma) {
+    if input.contains(TokenKind::Comma) || (input.delimiter == Some('(') && input.contents.len() == 0) {
         return Ok(Expression::Tuple(
             input
                 .split_all(TokenKind::Comma)
@@ -121,6 +121,6 @@ pub(super) fn parse_as_expression(input: TokenGroup) -> errors::CellTailResult<E
 
     Err(errors::CellTailError::new(
         &input,
-        format!("Invalid expression"),
+        format!("Invalid expression {input:?}"),
     ))
 }

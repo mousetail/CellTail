@@ -1,0 +1,23 @@
+I=9,1,3;
+O=N;
+D=T;
+
+N, item & N..(), N: (), (item, 0), (); # First frame, indicate to neighbors existence
+(), (item, 0), () | N: (), (item, 0), (); # If in the middle, do nothing
+N, (item, 0), ():  (), (item, 1), 1; # If on the left edge, start indicating index
+
+index, (item, 0), (): (), (item, 1), 1-index; # Indicate the next index opposite polarity
+1, (item, 0), N: (item, 1), (item, 1), N; # End of the line, reverse
+0, (item, 0), N: (N, 2), (item, 1), N; # End of the line, reverse
+
+N | () | (N, 1), (item, 1),               N | ():                  (item, 1), (item, 2), (N, 1);             # Odd frames: Broadcast left
+N | (),          (item, 2),               N | () | (N, 2):         (N, 2), (item, 1), (item, 2);             # Even frames: Broadcast right
+
+(prev_item, 2),  (item & prev_item.., 1), (N, 2) | N:              (item, 1), (item, 2), (N, 1);             # Don't swap left
+(prev_item, 2),  (item, 1),               (N, 2) | N:              (prev_item, 1), (prev_item, 2), (N, 1);   # Swap left
+N,               (item, 1),               (N, 2) | N:              (item, 1), (item, 2), (N, 1);             # Left edge
+
+(N, 1) | N,      (item, 2),               (next_item & ..item, 2): (item, 2), (item, 1), (N, 2);             # Don't swap right
+(N, 1) | N,      (item, 2),               (next_item, 2):          (next_item, 2), (next_item, 1), (N, 2);   # Swap right
+(N, 1) | N,      (item, 2),               N:                       (item, 2), (item, 1), (N, 2);             # Right Edge
+
