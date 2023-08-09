@@ -134,7 +134,7 @@ impl CellTailError {
                 line_end: source.len(),
             },
             (Some((line_number, line_start)), None) => LinePosition {
-                line_number: *line_number,
+                line_number: *line_number + 1,
                 column_number: position - line_start,
                 line_start: *line_start + 1,
                 line_end: source.len(),
@@ -147,7 +147,7 @@ impl CellTailError {
             },
             (Some((line_number, line_start)), Some((_next_line_number, line_end))) => {
                 LinePosition {
-                    line_number: *line_number,
+                    line_number: *line_number + 1,
                     column_number: position - line_start,
                     line_start: *line_start + 1,
                     line_end: *line_end,
@@ -258,8 +258,9 @@ impl CellTailError {
         } else {
             writeln!(destination, "At an unkown location: ").unwrap()
         }
-
-        writeln!(destination, "{}", self.description).unwrap()
+        Self::set_color(31, destination);
+        writeln!(destination, "{}", self.description).unwrap();
+        Self::set_color(0, destination);
     }
 }
 

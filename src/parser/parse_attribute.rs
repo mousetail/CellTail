@@ -21,7 +21,7 @@ fn parse_as_number(input: &TokenGroup) -> errors::CellTailResult<isize> {
         } else {
             Err(errors::CellTailError::new(
                 input,
-                "Invalid negative number literal".to_owned(),
+                format!("Failure parsing as negative number literal, expected 2 tokens with the left being '-` but got a {:?}", input.contents[0]),
             ))
         }
     } else if input.contents.len() == 1 {

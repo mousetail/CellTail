@@ -144,14 +144,16 @@ fn interpret<T: std::io::Write>(
                 true
             }
         })
-        .map(|i| {
-            if let Literal::Number(k) = i.value_from_top {
-                Some(k)
-            } else {
-                None
-            }
-        })
+        .map(|i| format_character_in_output(&i.value_from_top))
         .collect::<Vec<_>>())
+}
+
+fn format_character_in_output(value: &Literal) -> Option<isize> {
+    match value {
+        Literal::Number(k) => Some(*k),
+        Literal::Tuple(t) if t.len()>=1 => format_character_in_output(&t[0]),
+        _ => None
+    }
 }
 
 fn get_contents(data: &str, format: &attributes::IOFormat) -> errors::CellTailResult<Vec<isize>> {
