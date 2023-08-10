@@ -242,24 +242,23 @@ number, N, N:                   N, (number, 1, number), N;
 ## Sorting a list, but also randomly replace some elements with others in specific situations
 
 ```
-# The numbers to sort, can be mofifed to take them from input instead
-I=999,9 ,1 ,3 ,2 ,1 ,5 ,1 3,8 83,7 ,- 1,1 4,8 ,9 99,1 5,4 ,1 7; 
-O=N;    
-D=T;    
+I=999, 9, 1, 3, 2, 1, 5, 13, 883, 7, -1, 14, 8 , 999, 15, 4, 17;
+O=N;
+D=T;
 
-N,   item & N..(),  N:       (),  (item, 0),     (); #  First frame, indicate to neighbors existence 
-(),  (item, 0),     () | N:  (),  (item, 0),     (); #  If in the middle, do nothing                 
-N,   (item, 0),     ():      (),  (item, 1, 5),  1; #   If on the left edge, start indicating index  
+N,  item & N..(), N:      (), (item, 0),    (); # First frame, indicate to neighbors existence
+(), (item, 0),    () | N: (), (item, 0),    (); # If in the middle, do nothing
+N,  (item, 0),    ():     (), (item, 1, 5), 1; #  If on the left edge, start indicating index
 
-index,  (item, 0),  ():  (item, 1),  (item, 1, index-1),  index+4; #  Indicate the next index opposite polarity 
-index,  (item, 0),  N:   (item, 1),  (item, 1, index),    N; #        End of the line                           
+index, (item, 0), (): (item, 1), (item, 1, index-1), index+4; # Indicate the next index opposite polarity
+index, (item, 0), N:  (item, 1), (item, 1, index),   N; #       End of the line
 
-(prev_item, 2),  (item & prev_item.., 1 | 3, index),  (N, 2) | N | ():  (N, 2),  (item, 2, index-1),       (item, 2); #       Don't swap left 
-(prev_item, 2),  (item, 1 | 3, index),                (N, 2) | N | ():  (N, 2),  (prev_item, 2, index-1),  (prev_item, 2); #  Swap left       
-N,               (item, 1 | 3, index),                (N, 2) | N | ():  (N, 2),  (item, 2, index-1),       (item, 2); #       Left edge       
+(prev_item, 2), (item & prev_item.., 1 | 3, index), (N, 2) | N | (): (N, 2), (item, 2, index-1),      (item, 2); #      Don't swap left
+(prev_item, 2), (item, 1 | 3, index),               (N, 2) | N | (): (N, 2), (prev_item, 2, index-1), (prev_item, 2); # Swap left
+N,              (item, 1 | 3, index),               (N, 2) | N | (): (N, 2), (item, 2, index-1),      (item, 2); #      Left edge
 
-(N, 1) | N,  (item, 2, index),         (next_item & item.., 1):  (item, 1),       (item, 3, index-1),       (N, 1); #  Don't swap right                                                          
-(N, 1) | N,  (item, 2, index),         (next_item, 1):           (next_item, 1),  (next_item, 3, index-1),  (N, 1); #  Swap right                                                                
-(N, 1) | N,  (item, 2, index & -1..),  N | ():                   (item, 1),       (item, 3, index-1),       (N, 1); #  Right Edge                                                                
-(N, 1) | N,  (item, 2 | 1 | 3, 0),     N | (_, -1):              (item, -1),      (item, -1),               N; #       Exit condition: If we get a kill signal exit. If the timer runs out exit. 
+(N, 1) | N, (item, 2, index),        (next_item & item.., 1): (item, 1),      (item, 3, index-1),      (N, 1); # Don't swap right
+(N, 1) | N, (item, 2, index),        (next_item, 1):          (next_item, 1), (next_item, 3, index-1), (N, 1); # Swap right
+(N, 1) | N, (item, 2, index & -1..), N | ():                  (item, 1),      (item, 3, index-1),      (N, 1); # Right Edge
+(N, 1) | N, (item, 2 | 1 | 3, 0),    N | (_, -1):             (item, -1),     (item, -1),              N; #      Exit condition: If we get a kill signal exit. If the timer runs out exit.
 ```
